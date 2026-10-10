@@ -123,9 +123,13 @@ export function stepPlayer(fx: number, fz: number, dt: number) {
   mz /= len
   const level = Math.min(2, motion.level + (input.run ? 1 : 0))
   const speed = SPEEDS[level]
-  player.x += mx * speed * dt
-  player.z += mz * speed * dt
-  resolve(player, 0.38)
+  // substep so a sprint at low frame rates can't skip through thin walls
+  const steps = Math.max(1, Math.ceil(dt / 0.03))
+  for (let i = 0; i < steps; i++) {
+    player.x += (mx * speed * dt) / steps
+    player.z += (mz * speed * dt) / steps
+    resolve(player, 0.38)
+  }
   player.heading = Math.atan2(mx, mz)
   player.speed = speed
   return true
