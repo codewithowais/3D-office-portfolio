@@ -186,6 +186,43 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
       hp.rotation.x = 0.85
       armR.current!.rotation.x = 0.2
       armL.current!.rotation.x = 0.2
+    } else if (s.pose === 'press') {
+      // pressing a button or tapping a screen
+      armR.current!.rotation.x = -1.4 + Math.sin(t * 7) * 0.1
+      armL.current!.rotation.x = -0.15
+    } else if (s.pose === 'write') {
+      // scribbling on a whiteboard: the arm is up and sweeps side to side
+      armR.current!.rotation.x = -2.0 + Math.sin(t * 5) * 0.2
+      armR.current!.rotation.z = -0.25 + Math.sin(t * 9) * 0.22
+      armL.current!.rotation.x = -0.15
+    } else if (s.pose === 'kick') {
+      legR.current!.rotation.x = -Math.max(0, Math.sin(t * 6)) * 1.25
+      kneeR.current!.rotation.x = Math.max(0, -Math.sin(t * 6)) * 0.5
+      armR.current!.rotation.x = 0.5
+      armL.current!.rotation.x = -0.6
+    } else if (s.pose === 'shake') {
+      armR.current!.rotation.x = -1.35 + Math.sin(t * 13) * 0.17
+      armL.current!.rotation.x = -0.15
+    } else if (s.pose === 'highfive') {
+      armR.current!.rotation.x = -2.75 + Math.sin(t * 10) * 0.06
+      armR.current!.rotation.z = -0.15
+    } else if (s.pose === 'fistbump') {
+      armR.current!.rotation.x = -1.5 + Math.sin(t * 6) * 0.1
+      armL.current!.rotation.x = -0.15
+    } else if (s.pose === 'laugh') {
+      hp.position.y = 0.9 + Math.abs(Math.sin(t * 12)) * 0.03
+      hp.rotation.x = -0.12 + Math.sin(t * 12) * 0.06
+      armR.current!.rotation.x = -0.95
+      armL.current!.rotation.x = -0.95
+    } else if (s.pose === 'selfie') {
+      // phone held up and out in front
+      armR.current!.rotation.x = -2.05
+      armR.current!.rotation.z = -0.2
+      armL.current!.rotation.x = -0.15
+    } else if (s.pose === 'think') {
+      // hand to the chin
+      armR.current!.rotation.x = -2.3 + Math.sin(t * 1.5) * 0.05
+      armL.current!.rotation.x = -1.0
     } else if (s.pose === 'flex') {
       hp.position.y = 0.9 + Math.abs(Math.sin(t * 5)) * 0.03
       armR.current!.rotation.x = -1.5

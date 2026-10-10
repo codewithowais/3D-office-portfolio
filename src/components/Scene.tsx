@@ -119,6 +119,11 @@ function Director() {
           const sp = spotOf(st.talking.id, clock.t)
           if (sp) player.heading = Math.atan2(sp.x - player.x, sp.z - player.z)
           if (input.f || input.b || input.l || input.r) st.endTalk()
+          // one-shot poses (handshake, high-five...) finish while the conversation stays open
+          if (action.until && clock.t >= action.until) {
+            action.until = 0
+            player.pose = 'stand'
+          }
         } else if (seat.active) {
           // seated: any movement key stands you up
           player.speed = 0

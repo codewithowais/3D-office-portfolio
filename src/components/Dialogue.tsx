@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { NPCS, fill } from '@/lib/dialogue'
+import { NPCS, fill, type Node } from '@/lib/dialogue'
 import { soccer } from '@/lib/soccer'
 import { EMOTES, SPEED_NAMES } from '@/lib/player'
 import { PROGRESS_TOTAL, useStore } from '@/lib/store'
@@ -25,7 +25,8 @@ export default function Dialogue() {
       <ProgressChip />
       {playing && <ScoreChip />}
       {!asking && !talking && <PlaceBanner />}
-      {!asking && talking && <Conversation id={talking.id} node={talking.node} />}
+      {!asking && talking && <Conversation id={talking.id} node={talking.node} view={talking.view} intro={talking.intro} />}
+      <Flash />
       {!asking && !talking && seated && <StandPrompt />}
       {!asking && !talking && !seated && nearby && talkable(nearby) && <Prompt id={nearby} />}
       {!asking && !talking && !seated && playing && nearBall && <KickPrompt lower={!!nearby} />}
@@ -152,7 +153,7 @@ function ProgressChip() {
             {row('Places visited', progress.places.length, PROGRESS_TOTAL.places)}
             {row('Things tried', progress.things.length, PROGRESS_TOTAL.things)}
           </ul>
-          <p className="mt-3 text-[11px] text-[var(--ui-muted)]">Talk to people, walk into every room, and try the computers, chairs and coffee machine.</p>
+          <p className="mt-3 text-[11px] text-[var(--ui-muted)]">Talk to people, shake hands, play games, walk into every room, and try the computers, chairs, vending machine and more.</p>
         </div>
       )}
     </div>
@@ -222,12 +223,19 @@ function Prompt({ id }: { id: string }) {
   )
 }
 
-function Conversation({ id, node }: { id: string; node: string }) {
+/** The white flash of a selfie. */
+function Flash() {
+  const flash = useStore((s) => s.flash)
+  if (!flash) return null
+  return <div key={flash} aria-hidden className="pointer-events-none absolute inset-0 z-30 bg-white" style={{ animation: 'office-flash 0.8s ease-out forwards' }} />
+}
+
+function Conversation({ id, node, view, intro }: { id: string; node: string; view?: Node; intro?: string }) {
   const choose = useStore((s) => s.choose)
   const endTalk = useStore((s) => s.endTalk)
   const playerName = useStore((s) => s.playerName)
   const npc = NPCS[id]
-  const n = npc.nodes[node]
+  const n = view ?? npc.nodes[node]
   const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
     box.current?.focus({ preventScroll: true })
@@ -255,6 +263,7 @@ function Conversation({ id, node }: { id: string; node: string }) {
             ✕
           </button>
         </div>
+        {intro && !view && node === 'hi' && <p className="mb-1 text-[12px] font-medium text-[var(--ui-accent)]">{fill(intro, playerName)}</p>}
         <p className="text-[14px] leading-relaxed text-[var(--ui-text)]">{fill(n.text, playerName)}</p>
         <ul className="mt-4 grid gap-1.5">
           {n.options.map((o, i) => (

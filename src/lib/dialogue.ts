@@ -1,3 +1,6 @@
+import type { Pose } from './actor'
+import { ACTS, MOVES, MOVE_ICON, PERSONAL, isLate, pick, rpsOutcome, type Act, type Ctx } from './social'
+
 /**
  * Everything the people in the office say, written from Muhammad Owais Ahmed's public portfolio
  * (https://codewithowais.github.io). Edit freely: this file is the content of the site.
@@ -12,6 +15,15 @@ export const OWNER = {
   github: 'https://github.com/codewithowais',
   linkedin: 'https://www.linkedin.com/in/codewithowais/',
   resume: 'https://codewithowais.github.io/muhammad-owais-ahmed-resume.pdf',
+  /** facts used by the quiz, all taken from the portfolio */
+  years: 6,
+  city: 'Karachi',
+  users: '25,000+',
+  schools: 10,
+  trained: '1,200',
+  cohorts: 11,
+  repos: '60+',
+  degree: 'BS Computer Science',
 }
 
 export interface Option {
@@ -24,6 +36,8 @@ export interface Option {
   href?: string
   /** special actions */
   action?: 'askName' | 'escort'
+  /** a social act or mini-game step, run by the store: 'handshake', 'rps:1', 'quiz:2'... */
+  act?: string
 }
 
 export interface Node {
@@ -177,7 +191,7 @@ export const NPCS: Record<string, Npc> = {
         ],
       },
       todo: {
-        text: 'Plenty! Chat to anyone with a diamond over their head, sit on the sofas or at the free desks, pour a coffee in the lounge, ring my bell, play football with red, or read the boards. A little Explorer counter in the corner tracks what you have found.',
+        text: 'Plenty! Chat to anyone with a diamond over their head, sit on the sofas or at the free desks, pour a coffee, use the vending machine, water cooler or printer, flick the lights, scribble on the whiteboard, ring my bell, play football with red, or read the boards. You can also shake hands, play rock-paper-scissors, take selfies or take my quiz about Owais with anyone. A little Explorer counter in the corner tracks what you have found.',
         options: [{ label: 'Show me around the office', action: 'escort' }, back('hi')],
       },
       who: {
@@ -464,6 +478,48 @@ export const NPCS: Record<string, Npc> = {
   },
 }
 
+/* ---------------- more things to use ---------------- */
+Object.assign(NPCS, {
+  vending: {
+    id: 'vending',
+    name: 'Vending machine',
+    role: 'Snacks',
+    accent: '#e8584a',
+    nodes: {
+      hi: {
+        text: 'The machine hums and glows. A sign says: "Fuel for developers". What will it be?',
+        options: [
+          { label: 'Crunchy chips', next: 'chips' },
+          { label: 'Chocolate bar', next: 'choc' },
+          { label: 'Cold cola', next: 'cola' },
+          { label: 'Step away' },
+        ],
+      },
+      chips: { text: 'Clunk! The chips drop. Spicy masala flavour, naturally.', options: [{ label: 'Another one', next: 'hi' }, { label: 'Step away' }] },
+      choc: { text: 'Clunk! A chocolate bar. Mahnoor says it is the secret ingredient of every Flutter release.', options: [{ label: 'Another one', next: 'hi' }, { label: 'Step away' }] },
+      cola: { text: 'Psssht! Ice cold. Sana says it is the only thing that survives a Friday deployment.', options: [{ label: 'Another one', next: 'hi' }, { label: 'Step away' }] },
+    },
+  },
+  printer: {
+    id: 'printer',
+    name: 'Printer',
+    role: 'Photocopier',
+    accent: '#59616b',
+    nodes: {
+      hi: {
+        text: "The printer whirs awake and is ready for your job. A sticky note on the lid says: \"Yes, we have tried turning it off and on again.\"",
+        options: [
+          { label: `Print ${OWNER.short}'s résumé`, next: 'print' },
+          { label: 'Print the portfolio link', next: 'link' },
+          { label: 'Step away' },
+        ],
+      },
+      print: { text: 'Whirr... clunk. A fresh résumé slides out, still warm.', options: [{ label: 'Open the résumé (PDF)', href: OWNER.resume }, back('hi')] },
+      link: { text: `Whirr... a page with ${OWNER.site} in large friendly letters slides out.`, options: [{ label: 'Open the portfolio site', href: OWNER.site }, back('hi')] },
+    },
+  },
+} satisfies Record<string, Npc>)
+
 /* ---------------- extras applied to everyone ---------------- */
 
 /** What each person says when you first come close. */
@@ -493,16 +549,162 @@ const SMALL: Record<string, [string, string]> = {
   usman: ['Relaxed. This sofa is undefeated.', 'Beginners learn fastest by building something real in the first week.'],
   bilal: ['Great match. Red is a player short, as you know.', 'A good pass finds the player in space, not the one standing still.'],
   hira: ['Enjoying the game with Bilal.', 'The goal red attacks is the left one. Remember that when you shoot!'],
+  boss: ['Pretty good: code reviews, a little shipping and plenty of coffee.', 'I started with a small website for a school and it never stopped growing: that became SimpliEd.'],
   visitor: ['Excited! This is not what I expected from a portfolio.', 'I was told the whole city around the office is built in code.'],
 }
 for (const [id, [day, fact]] of Object.entries(SMALL)) {
   const n = NPCS[id]
   if (!n) continue
-  n.nodes.day = { text: day, options: [{ label: 'Tell me something interesting', next: 'fact' }, back('hi')] }
-  n.nodes.fact = { text: fact, options: [{ label: 'How is your day going?', next: 'day' }, back('hi')] }
-  const hi = n.nodes.hi
-  // put the small talk before the final "bye"/exit option, never exceeding nine choices
-  const at = Math.max(0, hi.options.length - 1)
-  if (hi.options.length < 8) hi.options.splice(at, 0, { label: 'How is your day going?', next: 'day' }, { label: 'Tell me something interesting', next: 'fact' })
-  else if (hi.options.length < 9) hi.options.splice(at, 0, { label: 'Tell me something interesting', next: 'fact' })
+  n.nodes.day = { text: day, options: [{ label: 'Tell me something interesting', next: 'fact' }, back('chat')] }
+  n.nodes.fact = { text: fact, options: [{ label: 'How is your day going?', next: 'day' }, back('chat')] }
+}
+
+/* ---------------- things to do with people: chat, social acts, rock-paper-scissors, the quiz ---------------- */
+
+const PEOPLE = ['boss', 'receptionist', 'guard', 'hamza', 'sana', 'zain', 'mahnoor', 'usman', 'visitor', 'bilal', 'hira']
+for (const id of PEOPLE) {
+  const n = NPCS[id]
+  if (!n) continue
+  n.nodes.more = {
+    text: 'Sure, {name}. What would you like to do?',
+    options: [{ label: 'Chat a little', next: 'chat' }, { label: 'Do something together', next: 'social' }, back('hi')],
+  }
+  n.nodes.chat = {
+    text: 'Of course. What about?',
+    options: [
+      { label: 'How is your day going?', next: 'day' },
+      { label: 'Tell me something interesting', next: 'fact' },
+      { label: 'Share a joke', act: 'joke' },
+      { label: 'Ask for advice', act: 'advice' },
+      { label: 'Give a compliment', act: 'compliment' },
+      back('more'),
+    ],
+  }
+  n.nodes.social = {
+    text: 'Go on then, {name}!',
+    options: [
+      { label: 'Shake hands', act: 'handshake' },
+      { label: 'High-five', act: 'highfive' },
+      { label: 'Fist bump', act: 'fistbump' },
+      { label: 'Play rock, paper, scissors', act: 'rps' },
+      { label: 'Take a selfie together', act: 'selfie' },
+      { label: 'Give them a coffee', act: 'coffee' },
+      { label: `Quiz me about ${OWNER.short}`, act: 'quiz' },
+      back('more'),
+    ],
+  }
+  n.nodes.hi.options.splice(Math.max(0, n.nodes.hi.options.length - 1), 0, { label: 'Chat or do something together', next: 'more' })
+}
+
+/** The quiz: real facts from the portfolio. Three random questions per round. */
+interface Question {
+  q: string
+  a: string[]
+  /** index of the right answer */
+  c: number
+  why: string
+}
+const QUIZ: Question[] = [
+  { q: `How many years has ${OWNER.short} been building production apps?`, a: ['Three', 'Six', 'Ten'], c: 1, why: `${OWNER.years} years of web and mobile work` },
+  { q: 'How many people use SimpliEd, the school platform he helped found?', a: ['About 2,500', 'About 250,000', `${OWNER.users}`], c: 2, why: `${OWNER.users} users across ${OWNER.schools} schools` },
+  { q: `How many schools run on SimpliEd?`, a: [`${OWNER.schools}`, '2', '100'], c: 0, why: `${OWNER.schools} schools` },
+  { q: 'Which framework does he teach at Jawan Pakistan?', a: ['Angular', 'Flutter', 'Django'], c: 1, why: 'he is Lead Trainer for Flutter' },
+  { q: `Which city is ${OWNER.short} based in?`, a: ['Lahore', 'Islamabad', OWNER.city], c: 2, why: `${OWNER.city}, Pakistan` },
+  { q: 'How many developers has he trained?', a: [`Over ${OWNER.trained}`, 'About 120', 'Over 12,000'], c: 0, why: `over ${OWNER.trained} across ${OWNER.cohorts} cohorts` },
+  { q: 'What is the SimpliEd backend built on?', a: ['Ruby on Rails', 'PHP and MySQL', 'Node.js and MongoDB'], c: 2, why: 'he architected it on Node.js and MongoDB' },
+  { q: 'What is Ledgerly, one of his open-source projects?', a: ['A privacy-first finance app', 'A video game', 'A weather widget'], c: 0, why: 'an offline-first, privacy-first finance app with an AI assistant' },
+  { q: 'Which degree is he studying at Virtual University of Pakistan?', a: [OWNER.degree, 'BBA', 'MBBS'], c: 0, why: `${OWNER.degree}, 2023 to 2027` },
+  { q: 'Roughly how many repositories does he have on GitHub?', a: ['About 6', OWNER.repos, 'More than 600'], c: 1, why: `${OWNER.repos} repositories` },
+]
+const QN = 3
+
+export interface Game {
+  rps: { w: number; l: number; d: number }
+  quiz: { ids: number[]; i: number; score: number } | null
+  bestQuiz: number
+}
+export const newGame = (): Game => ({ rps: { w: 0, l: 0, d: 0 }, quiz: null, bestQuiz: -1 })
+
+export interface ActResult {
+  view: Node
+  pose?: Pose
+  secs?: number
+  /** end the conversation and show this notice (selfie) */
+  notice?: string
+  flash?: boolean
+  game?: Partial<Game>
+}
+
+function question(ids: number[], i: number, lead = ''): Node {
+  const q = QUIZ[ids[i]]
+  return {
+    text: `${lead}Question ${i + 1} of ${QN}: ${q.q}`,
+    options: [...q.a.map((label, k) => ({ label, act: `quiz:${k}` })), { label: 'Stop the quiz', next: 'social' }],
+  }
+}
+
+/** Runs one social act or mini-game step for the person you are talking to. */
+export function runAct(npcId: string, act: string, ctx: Ctx, game: Game): ActResult {
+  const npc = NPCS[npcId]
+  const who = npc.name
+  const sub = (t: string) => fill(t.replace(/\{who\}/g, who), ctx.name)
+  const [kind, arg] = act.split(':')
+  const more: Option[] = [{ label: 'Do something else', next: 'social' }, back('hi')]
+
+  if (kind === 'selfie') {
+    return { view: npc.nodes.social, flash: true, pose: 'selfie', secs: 2.2, notice: sub(`Click! Selfie with ${who}. ${pick(['You both look great.', 'Somebody blinked, but it is still a keeper.', 'Saved to the office memories.'])}`) }
+  }
+  if (kind === 'rps') {
+    if (arg === undefined) {
+      const r = game.rps
+      const tally = r.w + r.l + r.d ? ` Score so far: you ${r.w}, ${who} ${r.l}, draws ${r.d}.` : ''
+      return { view: { text: `Rock, paper, scissors, ${'{name}'}!${tally} Pick one.`, options: [...MOVES.map((m, k) => ({ label: `${MOVE_ICON[k]} ${m}`, act: `rps:${k}` })), { label: 'Enough games', next: 'social' }] }, pose: 'clap', secs: 1 }
+    }
+    const you = Number(arg)
+    const them = Math.floor(Math.random() * 3)
+    const out = rpsOutcome(you, them)
+    const rps = { w: game.rps.w + (out === 1 ? 1 : 0), l: game.rps.l + (out === -1 ? 1 : 0), d: game.rps.d + (out === 0 ? 1 : 0) }
+    const verdict = out === 1 ? `You win, ${'{name}'}!` : out === -1 ? `${who} wins this one.` : 'A draw!'
+    return {
+      view: {
+        text: `You: ${MOVE_ICON[you]} ${MOVES[you]}. ${who}: ${MOVE_ICON[them]} ${MOVES[them]}. ${verdict} (You ${rps.w}, ${who} ${rps.l}, draws ${rps.d})`,
+        options: [...MOVES.map((m, k) => ({ label: `Again: ${MOVE_ICON[k]} ${m}`, act: `rps:${k}` })), { label: 'Enough games', next: 'social' }],
+      },
+      pose: out === 1 ? 'cheer' : out === -1 ? 'bow' : 'fistbump',
+      secs: 1.6,
+      game: { rps },
+    }
+  }
+  if (kind === 'quiz') {
+    if (arg === undefined) {
+      // three different questions, shuffled
+      const ids = QUIZ.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, QN)
+      return { view: question(ids, 0, `Let's see how well you know ${OWNER.short}, {name}. `), pose: 'think', secs: 1.5, game: { quiz: { ids, i: 0, score: 0 } } }
+    }
+    const qz = game.quiz
+    if (!qz) return runAct(npcId, 'quiz', ctx, game)
+    const q = QUIZ[qz.ids[qz.i]]
+    const ok = Number(arg) === q.c
+    const score = qz.score + (ok ? 1 : 0)
+    const lead = ok ? 'Correct! ' : `Not quite: ${q.why}. `
+    if (qz.i + 1 < QN) return { view: question(qz.ids, qz.i + 1, lead), pose: ok ? 'clap' : undefined, secs: 1.2, game: { quiz: { ids: qz.ids, i: qz.i + 1, score } } }
+    const verdict = score === QN ? `Perfect, {name}! You could run his fan club.` : score === 2 ? 'Nicely done, {name}! You clearly read his portfolio.' : score === 1 ? 'A good start. Ask around the office and try again!' : `Tough round, {name}. ${OWNER.short} is very approachable, just ask him.`
+    return {
+      view: {
+        text: `${lead}You scored ${score} out of ${QN}. ${verdict}`,
+        options: [{ label: 'Try again', act: 'quiz' }, { label: `Say hello to ${OWNER.short}`, href: `mailto:${OWNER.email}` }, { label: 'Back', next: 'social' }],
+      },
+      pose: score >= 2 ? 'cheer' : 'bow',
+      secs: 2,
+      game: { quiz: null, bestQuiz: Math.max(game.bestQuiz, score) },
+    }
+  }
+
+  // plain social acts: a pose and a reply, some of them personal
+  const def = ACTS[kind as Act]
+  if (!def) return { view: npc.nodes.hi }
+  const mine = PERSONAL[npcId]?.[kind as 'joke' | 'advice']
+  const pool = isLate(ctx.hour) && def.late ? def.late : def.lines
+  const text = sub(mine && Math.random() < 0.6 ? mine : pick(pool))
+  return { view: { text, options: [{ label: 'Again', act: kind }, ...more] }, pose: def.pose, secs: def.secs }
 }
