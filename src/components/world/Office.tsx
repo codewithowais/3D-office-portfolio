@@ -10,6 +10,7 @@ import { BRAND, C, WALLS } from '@/lib/world'
 import { useStore } from '@/lib/store'
 import { useTheme } from '../Atmosphere'
 import { Person } from './Person'
+import { StaticMerge } from './StaticMerge'
 import { Art, Chair, Corkboard, Monitor, Plant, Shelf, Sitter, Sofa, Workstation } from './Furniture'
 import { Ball, Box, Cyl, Floor, RBox, Sign, mat } from './primitives'
 import { plankTexture } from './textures'
@@ -87,7 +88,7 @@ function BossDoor() {
   })
   return (
     <group>
-      <group ref={leaf} position={[3, 0, -9.9]}>
+      <group ref={leaf} position={[3, 0, -9.9]} userData={{ dynamic: true }}>
         <Box p={[0, 1.15, 0.89]} s={[0.07, 2.3, 1.76]} c="#a9703f" />
         <Box p={[0.05, 1.1, 1.5]} s={[0.04, 0.05, 0.12]} c="#e8d8a8" cast={false} />
       </group>
@@ -284,7 +285,7 @@ export function Office() {
   const reception = receptionistSample
   const bossS = useMemo(() => (t: number) => boss.sample(t), [])
   return (
-    <group>
+    <StaticMerge>
       {theme.interior > 0 && lights.map((p, i) => <pointLight key={i} position={p} intensity={theme.interior * 70} distance={17} decay={2} color="#ffe3b8" />)}
       {/* slab + corridor */}
       <Box p={[0, -0.05, 0]} s={[41, 0.08, 29]} c="#c6ced4" receive />
@@ -314,7 +315,7 @@ export function Office() {
       {/* people with their own scripts */}
       <Person sample={reception} loop={TOUR_LEN} {...{ shirt: '#26302c', pants: '#1c1f1e', skin: '#e0b08c', hair: '#1c1714' }} />
       <Person sample={bossS} {...{ shirt: '#3a3f45', pants: '#23262a', skin: '#c68e69', hair: '#2a2a2a' }} scale={1.03} />
-    </group>
+    </StaticMerge>
   )
 }
 

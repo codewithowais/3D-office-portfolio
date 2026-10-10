@@ -42,7 +42,7 @@ export function TalkMarkers() {
   return (
     <>
       {TALKABLES.map((tk, i) => (
-        <mesh key={tk.id} ref={(el) => void (refs.current[i] = el)} geometry={OCTA} material={PERSON} visible={false} />
+        <mesh key={tk.id} ref={(el) => void (refs.current[i] = el)} geometry={OCTA} material={PERSON} visible={false} userData={{ dynamic: true }} />
       ))}
     </>
   )

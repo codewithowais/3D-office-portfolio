@@ -65,7 +65,7 @@ export function MovingCar({ sample, color, loop }: { sample: (t: number) => Samp
     o.rotation.y = s.heading
   })
   return (
-    <group ref={g}>
+    <group ref={g} userData={{ dynamic: true }}>
       <Body color={color} />
     </group>
   )

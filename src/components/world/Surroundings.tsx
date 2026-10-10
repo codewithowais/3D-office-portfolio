@@ -15,6 +15,7 @@ import { M } from './materials'
 import { soccer } from '@/lib/soccer'
 import { useStore } from '@/lib/store'
 import { Chat } from './Chat'
+import { StaticMerge } from './StaticMerge'
 import { TalkMarkers } from './TalkMarkers'
 import { netTexture } from './textures'
 
@@ -189,7 +190,7 @@ function Pitch() {
       {L(-35.12, -35, -5, 5)}
       <Goal p={[-52, 0, 0]} r={Math.PI / 2} />
       <Goal p={[-30, 0, 0]} r={-Math.PI / 2} />
-      <mesh ref={ball} scale={0.22} castShadow geometry={SPH} material={mat('#ffffff')} />
+      <mesh ref={ball} userData={{ dynamic: true }} scale={0.22} castShadow geometry={SPH} material={mat('#ffffff')} />
       {players.map((pl, i) => (
         <Person key={i} sample={samplers[i]} shirt={kits[i]} pants="#f4f6f8" skin={['#e0b08c', '#8d5a3b', '#c68e69'][i % 3]} hair="#1c1714" />
       ))}
@@ -247,8 +248,8 @@ function PlayerAvatar() {
   })
   return (
     <>
-      <Person sample={sample} shirt={color} pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
-      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+      <Person sample={sample} sprays shirt={color} pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
+      <mesh ref={ring} userData={{ dynamic: true }} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
         <ringGeometry args={[0.62, 0.78, 40]} />
         <meshBasicMaterial color="#17e0d6" transparent opacity={0.9} depthWrite={false} toneMapped={false} />
       </mesh>
@@ -261,7 +262,7 @@ export function Surroundings() {
   const visitorSample = useMemo(() => (t: number) => visitor.sample(t), [])
   const carSample = useMemo(() => (t: number) => car.sample(t), [])
   return (
-    <group>
+    <StaticMerge>
       <Garden />
       <Railing a={[-24, 18]} b={[-3.6, 18]} />
       <Railing a={[3.6, 18]} b={[24, 18]} />
@@ -271,7 +272,7 @@ export function Surroundings() {
       <Gate />
       <Booth />
       <Sign p={[11, 1.9, 18.32]} w={4.2} h={0.9} text={BRAND.site} />
-      <Person sample={guardSample} loop={TOUR_LEN} shirt="#14324b" pants="#1f2429" skin="#c68e69" hair="#151515" />
+      <Person sample={guardSample} sprays loop={TOUR_LEN} shirt="#14324b" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Person sample={visitorSample} loop={TOUR_LEN} shirt="#2f9bff" pants="#26324a" skin="#d9a77f" hair="#2a1d14" />
       <MovingCar sample={carSample} loop={TOUR_LEN} color="#0e8f93" />
       <PlayerAvatar />
@@ -280,6 +281,6 @@ export function Surroundings() {
       <Person sample={jogger.sample} shirt="#ff6f59" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Pitch />
       <Parking />
-    </group>
+    </StaticMerge>
   )
 }
