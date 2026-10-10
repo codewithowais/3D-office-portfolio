@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { input } from '@/lib/player'
 import { useStore, type Quality } from '@/lib/store'
 import { THEME_NAMES, type ThemeName } from '@/lib/themes'
 import { CHAPTERS } from '@/lib/tour'
@@ -105,11 +106,14 @@ function RoomMenu() {
 function Caption() {
   const chapter = useStore((s) => s.chapter)
   const mode = useStore((s) => s.mode)
+  const walk = useStore((s) => s.walk)
   if (mode !== 'demo') {
     return (
       <div className={`pointer-events-none absolute bottom-3 left-3 max-w-[300px] rounded-[18px] px-5 py-4 sm:bottom-4 sm:left-4 ${glass}`}>
-        <p className="text-[22px] leading-tight text-[#14324b]" style={serif}>Explore freely</p>
-        <p className="mt-1 text-[12px] text-[#4f6170]">Drag to orbit · scroll to zoom · right-drag to pan</p>
+        <p className="text-[22px] leading-tight text-[#14324b]" style={serif}>{walk ? 'You are walking' : 'Explore freely'}</p>
+        <p className="mt-1 text-[12px] text-[#4f6170]">
+          {walk ? 'W A S D or arrows to move · Shift to run · drag to look · Esc to stop' : 'Drag to orbit · scroll to zoom · right-drag to pan'}
+        </p>
       </div>
     )
   }
@@ -128,17 +132,58 @@ function Controls() {
   const toggle = useStore((s) => s.togglePause)
   const setMode = useStore((s) => s.setMode)
   const start = useStore((s) => s.startDemo)
+  const walk = useStore((s) => s.walk)
+  const startWalk = useStore((s) => s.startWalk)
+  const stopWalk = useStore((s) => s.stopWalk)
   const btn = `rounded-full px-5 py-2.5 text-[13px] text-[#14324b] transition hover:bg-white ${glass}`
   return (
     <div className="pointer-events-auto absolute bottom-3 right-3 flex gap-2 sm:bottom-4 sm:right-4">
       {mode === 'demo' ? (
         <>
+          <button className={btn} onClick={startWalk}>Walk</button>
           <button className={btn} onClick={toggle}>{paused ? 'Resume' : 'Pause'}</button>
           <button className={btn} onClick={() => setMode('explore')}>Exit demo</button>
         </>
       ) : (
-        <button className={btn} onClick={start}>Start demo</button>
+        <>
+          {walk ? (
+            <button className={btn} onClick={stopWalk}>Stop walking</button>
+          ) : (
+            <button className={`${btn} !bg-[#14324b] !text-white hover:!bg-[#1c4466]`} onClick={startWalk}>Walk as a person</button>
+          )}
+          <button className={btn} onClick={start}>Start demo</button>
+        </>
       )}
+    </div>
+  )
+}
+
+/** Touch / mouse pad for walking without a keyboard. */
+function WalkPad() {
+  const walk = useStore((s) => s.walk)
+  if (!walk) return null
+  const hold = (k: keyof typeof input) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      e.currentTarget.setPointerCapture(e.pointerId)
+      input[k] = true
+    },
+    onPointerUp: () => {
+      input[k] = false
+    },
+    onPointerCancel: () => {
+      input[k] = false
+    },
+  })
+  const key = `grid h-12 w-12 place-items-center rounded-2xl text-lg text-[#14324b] select-none touch-none active:bg-white ${glass}`
+  return (
+    <div className="pointer-events-auto absolute bottom-20 right-3 grid grid-cols-3 gap-2 sm:bottom-24 sm:right-4" aria-label="Walking controls">
+      <span />
+      <button className={key} aria-label="Forward" {...hold('f')}>▲</button>
+      <span />
+      <button className={key} aria-label="Left" {...hold('l')}>◀</button>
+      <button className={key} aria-label="Back" {...hold('b')}>▼</button>
+      <button className={key} aria-label="Right" {...hold('r')}>▶</button>
+      <button className={`${key} col-span-3 !h-10 !w-auto !text-[12px]`} {...hold('run')}>Hold to run</button>
     </div>
   )
 }
@@ -152,6 +197,7 @@ export default function Overlay() {
         <RoomMenu />
         <Caption />
         <Controls />
+        <WalkPad />
       </div>
       <div className={`pointer-events-none absolute inset-0 grid place-items-center bg-[#dcecf4] transition-opacity duration-700 ${ready ? 'opacity-0' : 'opacity-100'}`}>
         <div className="text-center" style={serif}>
