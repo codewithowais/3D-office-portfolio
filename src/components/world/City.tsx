@@ -9,12 +9,12 @@ import { MovingCar, CAR_COLORS } from './Car'
 import { Roads, StreetFurniture } from './CityRoads'
 import { FacadeStyle, brickBump, facadeGlow, facadeMap } from './facades'
 import { M } from './materials'
+import { Mountains } from './Mountains'
 import { Person, look } from './Person'
 import { BOX, Box, CYL, Floor, Instanced, PLANE, SPH, mat } from './primitives'
 
 const { xs, zs, road: RW } = GRID
 const TILE = 7
-const CONE = new THREE.ConeGeometry(1, 1, 7)
 const ICO = new THREE.IcosahedronGeometry(1, 1)
 const PYRAMID = new THREE.ConeGeometry(1, 1, 4).rotateY(Math.PI / 4)
 
@@ -357,7 +357,7 @@ function Waterfront() {
     <group>
       <Floor x0={-700} x1={700} z0={seaZ} z1={sandZ0} y={0.0} m={M.sand} />
       <Floor x0={-700} x1={700} z0={seaZ - 4} z1={seaZ + 1} y={0.02} c="#d9dee2" />
-      <mesh position={[0, -0.3, -662]} rotation={[-Math.PI / 2, 0, 0]} scale={[2600, 880, 1]} geometry={PLANE} material={mat('#2fa6c4', { rough: 0.05, metal: 0.5 })} />
+      <mesh position={[0, -0.3, -662]} rotation={[-Math.PI / 2, 0, 0]} scale={[2600, 880, 1]} geometry={PLANE} material={mat('#2fa6c4', { rough: 0.32, metal: 0.12 })} />
       {/* pier */}
       <Box p={[50, 0.6, seaZ - 26]} s={[4, 0.3, 64]} c="#e0ad6f" />
       {Array.from({ length: 13 }, (_, i) => (
@@ -375,10 +375,7 @@ function Waterfront() {
       ))}
       <Instanced geometry={CYL} material={mat('#6b5a3a')} items={palmItems} cast />
       <Instanced geometry={SPH} material={mat('#2e9a52')} items={palmTops} cast />
-      {/* mountains */}
-      {[[-420, 130, 70], [-200, 100, 60], [40, 150, 90], [300, 120, 70], [520, 140, 85], [-560, 150, 80]].map(([x, r, h], i) => (
-        <mesh key={i} position={[x, h / 2 - 6, -700 - (i % 2) * 70]} scale={[r, h, r]} geometry={CONE} material={mat(i % 2 ? '#c8d8e8' : '#b6c8dc', { rough: 1 })} />
-      ))}
+      <Mountains />
     </group>
   )
 }
