@@ -33,7 +33,7 @@ const SPRAY = Array.from({ length: 9 }, (_, i) => i)
 
 /**
  * A low-poly person (≈1.8 m) with hip/knee/shoulder joints.
- * Poses: walk/run (from speed), sit, type, water, wave. Everything is driven by the world clock,
+ * Poses: walk/run (from speed), sit, type, water, wave, talk/listen (standing or seated). Everything is driven by the world clock,
  * so pausing the tour freezes the animation too.
  */
 export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop, still }: Props) {
@@ -73,8 +73,8 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     k.init = true
     g.rotation.y = k.heading
 
-    const seated = s.pose === 'sit' || s.pose === 'type'
-        const sd = moving ? dt : 0
+    const seated = s.pose === 'sit' || s.pose === 'type' || s.pose === 'sittalk' || s.pose === 'sitlisten'
+    const sd = moving ? dt : 0
     k.sit += ((seated ? 1 : 0) - k.sit) * clamp(sd * 8)
     const run = s.speed > 2.6
     const amp = clamp(s.speed / 1.5) * (run ? 0.72 : 0.55)
@@ -109,6 +109,19 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     } else if (s.pose === 'wave') {
       ar = -2.55 + Math.sin(t * 7) * 0.22
       arz = -0.1
+    } else if (s.pose === 'talk') {
+      // speaking: both hands gesture, out of phase
+      ar = -0.95 + Math.sin(t * 4.3 + k.phase) * 0.5
+      al = -0.55 + Math.sin(t * 3.4 + 1.3 + k.phase) * 0.35
+    } else if (s.pose === 'listen') {
+      al = -0.12 + Math.sin(t * 1.3) * 0.04
+      ar = -0.12
+    } else if (s.pose === 'sittalk') {
+      ar = -1.1 + Math.sin(t * 4.3 + k.phase) * 0.45
+      al = -0.8 + Math.sin(t * 3.4 + 1.3) * 0.3
+    } else if (s.pose === 'sitlisten') {
+      al = -0.9
+      ar = -0.9
     }
     armL.current!.rotation.x = al
     armR.current!.rotation.x = ar
