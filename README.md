@@ -18,6 +18,7 @@ npm run build && npm start
 - **Auto-play tour** (about 3 minutes): guard watering the garden, a jogger, five-a-side football,
   a receptionist leading a visitor to the boss, the visitor driving away, then a 360° city orbit.
 - **Explore mode**: orbit / zoom / pan, 7 room shortcuts, scenic places, Pause / Exit demo / Start demo.
+- **Talk to people**: in Walk mode, nine characters can be spoken to (marked by a bobbing diamond). Walk close and press **E** (or tap the prompt), answer with **1–4**, **Esc** to leave. Some answers can teleport you, e.g. Priya at reception takes you to the Boss Cabin.
 - **Quality**: Low (no shadows), Medium, High.
 - **Time of day**: Day, Golden hour, Night (themes live in `src/lib/themes.ts`).
 - Deep link into the tour with `/?t=60` (seconds).
@@ -26,6 +27,8 @@ npm run build && npm start
 
 | Want to change | File |
 | --- | --- |
+| What people say (conversations, contact details) | `src/lib/dialogue.ts` |
+| Who can be talked to, and where they stand | `src/lib/talkables.ts` |
 | Brand name and website on the signs | `src/lib/world.ts` (`BRAND`) |
 | Colours and lighting moods | `src/lib/world.ts` (`C`), `src/lib/themes.ts` |
 | Captions and camera shots | `src/lib/tour.ts` |
