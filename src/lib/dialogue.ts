@@ -225,7 +225,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: 'Where is Owais based?', next: 'where' }, { label: 'Where can I play football?', teleport: [-35, 4] }, bye],
       },
       tips: {
-        text: 'Head in, say hi to Ayesha at reception, then follow the corridor to the Boss Cabin. A diamond floats over everything you can interact with: people, computers, boards, chairs, even the coffee machine. Press E near one. Hold Shift to run, Esc to stop walking.',
+        text: 'Head in, say hi to Ayesha at reception, then follow the corridor to the Boss Cabin. A diamond floats over everything you can interact with: people, computers, boards, chairs, even the coffee machine. Press E near one. Hold Shift to go faster, press R to switch between Walk, Run and Sprint, and Esc to stop walking.',
         options: [back('hi')],
       },
       where: {
@@ -373,7 +373,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'Any tips?', next: 'tips' }, { label: 'Is the office worth visiting?', next: 'office' }, bye],
       },
       tips: {
-        text: 'Keep moving and the others will pass to you. The goal in front of you is the left one. Hold Shift to run faster.',
+        text: 'Keep moving and the others will pass to you. The goal in front of you is the left one. Hold Shift or switch to Sprint (press R) to get to the ball first.',
         options: [back('hi')],
       },
       office: {

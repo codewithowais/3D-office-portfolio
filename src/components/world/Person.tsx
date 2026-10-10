@@ -105,7 +105,7 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     const sw2 = Math.sin(ph + Math.PI) * amp
 
     hips.current!.position.y = 0.9 - 0.4 * k.sit + (s.speed > 0.1 ? Math.abs(Math.cos(ph)) * 0.035 * (run ? 2 : 1) : 0)
-    hips.current!.rotation.x = run ? 0.16 : 0
+    hips.current!.rotation.x = s.speed > 5.5 ? 0.3 : run ? 0.16 : 0 // sprinting leans further into it
     legL.current!.rotation.x = lerp(sw, -Math.PI / 2, k.sit)
     legR.current!.rotation.x = lerp(sw2, -Math.PI / 2, k.sit)
     kneeL.current!.rotation.x = lerp(Math.max(0, -Math.sin(ph)) * amp * 1.3, Math.PI / 2, k.sit)

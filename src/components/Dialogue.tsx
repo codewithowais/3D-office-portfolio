@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NPCS, fill } from '@/lib/dialogue'
 import { soccer } from '@/lib/soccer'
+import { SPEED_NAMES } from '@/lib/player'
 import { PROGRESS_TOTAL, useStore } from '@/lib/store'
 import { talkable } from '@/lib/talkables'
 import NameGate from './NameGate'
@@ -52,6 +53,28 @@ function PlaceBanner() {
   )
 }
 
+/** Walk / Run / Sprint. Shift goes one level faster while held; R cycles the setting. */
+function SpeedChip() {
+  const level = useStore((s) => s.speedLevel)
+  const setLevel = useStore((s) => s.setSpeedLevel)
+  return (
+    <div className="ui-glass pointer-events-auto flex items-center gap-0.5 rounded-full p-1 text-[12px]" role="radiogroup" aria-label="Movement speed">
+      {SPEED_NAMES.map((name, i) => (
+        <button
+          key={name}
+          role="radio"
+          aria-checked={level === i}
+          onClick={() => setLevel(i)}
+          title={`${name}${i === 0 ? '' : ''} (press R to cycle)`}
+          className={`ui-focus cursor-pointer rounded-full px-2.5 py-1 font-semibold transition-colors ${level === i ? 'bg-[var(--ui-accent)] text-white' : 'text-[var(--ui-muted)] hover:bg-[var(--ui-hover)]'}`}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /** The football score while you're in the match. */
 function ScoreChip() {
   const score = useStore((s) => s.score)
@@ -79,7 +102,8 @@ function ProgressChip() {
     </li>
   )
   return (
-    <div className="pointer-events-none absolute right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+54px)] z-10 flex flex-col items-end sm:right-4 sm:top-[68px]">
+    <div className="pointer-events-none absolute right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+54px)] z-10 flex flex-col items-end gap-2 sm:right-4 sm:top-[68px]">
+      <SpeedChip />
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
