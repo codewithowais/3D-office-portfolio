@@ -3,7 +3,8 @@ import { clock } from './clock'
 import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
-import { player, resetPlayer } from './player'
+import { NPCS } from './dialogue'
+import { input, player, resetPlayer, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
@@ -22,6 +23,10 @@ interface State {
   theme: ThemeName
   ready: boolean
   walk: boolean
+  /** person within talking distance (walk mode) */
+  nearby: string | null
+  /** the conversation in progress */
+  talking: { id: string; node: string } | null
   /** true once the user picked a quality themselves: auto-downgrade then stays out of the way */
   qualityLocked: boolean
   /** extra resolution multiplier applied when even Low struggles */
@@ -48,6 +53,10 @@ interface State {
   startDemo: () => void
   startWalk: () => void
   stopWalk: () => void
+  setNearby: (id: string | null) => void
+  startTalk: (id?: string) => void
+  choose: (i: number) => void
+  endTalk: () => void
 }
 
 let restores: number[] = []
@@ -67,6 +76,8 @@ export const useStore = create<State>((set, get) => ({
   theme: 'Day',
   ready: false,
   walk: false,
+  nearby: null,
+  talking: null,
   chapter: 0,
   activeRoom: null,
   flight: dev.reducedMotion ? { pos: [0, 62, 58], target: [0, 0, 0], nonce: 1 } : null,
@@ -95,10 +106,10 @@ export const useStore = create<State>((set, get) => ({
   togglePause: () => set((s) => ({ paused: !s.paused })),
   setMode: (mode) => set({ mode }),
   flyTo: (pos, target, room = null) =>
-    set({ mode: 'explore', walk: false, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
+    set({ mode: 'explore', walk: false, talking: null, nearby: null, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
   startDemo: () => {
     clock.t = 0
-    set({ mode: 'demo', walk: false, paused: false, chapter: 0, activeRoom: null, flight: null })
+    set({ mode: 'demo', walk: false, talking: null, nearby: null, paused: false, chapter: 0, activeRoom: null, flight: null })
   },
   startWalk: () => {
     resetPlayer()
@@ -109,11 +120,32 @@ export const useStore = create<State>((set, get) => ({
       paused: false,
       activeRoom: null,
       flight: { pos: [0, 5.4, 33], target: [0, 1.3, 25], nonce: performance.now() },
+      talking: null,
     })
   },
   stopWalk: () => {
     player.visible = false
     player.speed = 0
-    set({ walk: false })
+    set({ walk: false, nearby: null, talking: null })
   },
+  setNearby: (nearby) => set({ nearby }),
+  startTalk: (id) => {
+    const who = id ?? get().nearby
+    if (!who || !NPCS[who] || !get().walk) return
+    Object.assign(input, { f: false, b: false, l: false, r: false, run: false })
+    player.speed = 0
+    set({ talking: { id: who, node: 'hi' } })
+  },
+  choose: (i) => {
+    const t = get().talking
+    if (!t) return
+    const opt = NPCS[t.id]?.nodes[t.node]?.options[i]
+    if (!opt) return
+    if (opt.teleport) {
+      teleport(opt.teleport[0], opt.teleport[1])
+      return set({ talking: null })
+    }
+    set({ talking: opt.next && NPCS[t.id].nodes[opt.next] ? { id: t.id, node: opt.next } : null })
+  },
+  endTalk: () => set({ talking: null }),
 }))

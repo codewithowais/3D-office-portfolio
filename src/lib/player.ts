@@ -43,3 +43,11 @@ export function stepPlayer(fx: number, fz: number, dt: number) {
   player.speed = speed
   return true
 }
+
+/** Instantly places the player (used by "take me to..." dialogue options). */
+export function teleport(x: number, z: number) {
+  player.x = x
+  player.z = z
+  resolve(player, 0.38)
+  player.speed = 0
+}
