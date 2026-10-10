@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { input } from '@/lib/player'
+import Dialogue from './Dialogue'
 import { useStore, type Quality } from '@/lib/store'
 import { THEME_NAMES, type ThemeName } from '@/lib/themes'
 import { CHAPTERS } from '@/lib/tour'
@@ -237,6 +238,7 @@ export default function Overlay() {
         <Controls />
         <WalkPad />
         <Notices />
+        <Dialogue />
       </div>
       <div className={`pointer-events-none absolute inset-0 grid place-items-center bg-[#dcecf4] transition-opacity duration-700 ${ready ? 'opacity-0' : 'opacity-100'}`}>
         <div className="text-center" style={serif}>
