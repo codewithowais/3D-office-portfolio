@@ -78,6 +78,7 @@ export const BOX = new THREE.BoxGeometry(1, 1, 1)
 export const CYL = new THREE.CylinderGeometry(1, 1, 1, 14)
 export const SPH = new THREE.SphereGeometry(1, 14, 10)
 export const PLANE = new THREE.PlaneGeometry(1, 1)
+export const OCTA = new THREE.OctahedronGeometry(1, 0)
 
 interface BoxProps {
   p: V3

@@ -57,7 +57,19 @@ export default function Experience() {
     const down = (e: KeyboardEvent) => {
       const st = useStore.getState()
       if (typing(e) || !st.walk) return
-      if (e.code === 'Escape') return st.stopWalk()
+      if (e.code === 'Escape') return st.talking ? st.endTalk() : st.stopWalk()
+      if (e.code === 'KeyE') {
+        // E starts a conversation, and while talking picks the first answer ("continue")
+        e.preventDefault()
+        if (st.talking) st.choose(0)
+        else if (st.nearby) st.startTalk(st.nearby)
+        return
+      }
+      if (st.talking) {
+        const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)
+        if (m) st.choose(Number(m[1]) - 1)
+        return
+      }
       const k = KEYS[e.code]
       if (k) {
         input[k] = true

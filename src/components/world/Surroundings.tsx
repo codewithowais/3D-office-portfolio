@@ -12,6 +12,7 @@ import { Person } from './Person'
 import { CAR_COLORS, MovingCar, ParkedCar } from './Car'
 import { Ball, BOX, Box, Cyl, Floor, Instanced, Sign, SPH, mat } from './primitives'
 import { M } from './materials'
+import { TalkMarkers } from './TalkMarkers'
 import { netTexture } from './textures'
 
 /* ------------ perimeter: cream plinth wall + green railings + gate ------------ */
@@ -264,6 +265,7 @@ export function Surroundings() {
       <Person sample={visitorSample} loop={TOUR_LEN} shirt="#2f9bff" pants="#26324a" skin="#d9a77f" hair="#2a1d14" />
       <MovingCar sample={carSample} loop={TOUR_LEN} color="#0e8f93" />
       <PlayerAvatar />
+      <TalkMarkers />
       <Person sample={jogger.sample} shirt="#ff6f59" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Pitch />
       <Parking />

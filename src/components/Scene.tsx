@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import { dprFor, getDevice } from '@/lib/device'
 import { player, stepPlayer } from '@/lib/player'
+import { TALKABLES, TALK_RANGE, spotOf } from '@/lib/talkables'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
 import { roomAt } from '@/lib/world'
@@ -21,6 +22,7 @@ function Director() {
   const cam = useMemo<Cam>(() => ({ p: [0, 0, 0], t: [0, 0, 0] }), [])
   const flight = useRef<Flight | null>(null)
   const primed = useRef(false)
+  const last = useRef({ x: 0, z: 0, init: false })
   const mode = useStore((s) => s.mode)
   const fly = useStore((s) => s.flight)
 
@@ -40,6 +42,7 @@ function Director() {
     const dt = Math.min(delta, 0.05)
     const st = useStore.getState()
     if (!st.ready) st.setReady()
+    if (!st.walk) last.current.init = false
 
     if (st.mode === 'demo') {
       if (!st.paused) clock.t += dt
@@ -87,13 +90,40 @@ function Director() {
         const fl = Math.hypot(fx, fz) || 1
         fx /= fl
         fz /= fl
-        const px = player.x
-        const pz = player.z
-        stepPlayer(fx, fz, dt)
-        const dx = player.x - px
-        const dz = player.z - pz
-        camera.position.x += dx
-        camera.position.z += dz
+        const l = last.current
+        if (!l.init) {
+          l.x = player.x
+          l.z = player.z
+          l.init = true
+        }
+        if (st.talking) {
+          // stand still and face whoever you're talking to; walk away and the conversation ends
+          player.speed = 0
+          const sp = spotOf(st.talking.id, clock.t)
+          if (sp) {
+            player.heading = Math.atan2(sp.x - player.x, sp.z - player.z)
+            if (Math.hypot(sp.x - player.x, sp.z - player.z) > TALK_RANGE * 2.2) st.endTalk()
+          }
+        } else {
+          stepPlayer(fx, fz, dt)
+          let best: string | null = null
+          let bd = TALK_RANGE
+          for (const tk of TALKABLES) {
+            const sp = tk.at(clock.t, nearScratch)
+            if (!sp.visible) continue
+            const d = Math.hypot(sp.x - player.x, sp.z - player.z)
+            if (d < bd) {
+              bd = d
+              best = tk.id
+            }
+          }
+          if (best !== st.nearby) st.setNearby(best)
+        }
+        // move the camera by however far the player moved this frame (walking or teleporting)
+        camera.position.x += player.x - l.x
+        camera.position.z += player.z - l.z
+        l.x = player.x
+        l.z = player.z
         c.target.set(player.x, 1.3, player.z)
         const room = roomAt(player.x, player.z)
         if (room !== st.activeRoom) st.setActiveRoom(room)
@@ -149,6 +179,7 @@ function Lights() {
  * Frame-rate watchdog. If the device can't hold ~30 fps it steps quality down (High -> Medium -> Low,
  * then resolution), so a slow machine settles instead of grinding. Skips warm-up and hidden tabs.
  */
+const nearScratch = { x: 0, z: 0, visible: true }
 let liveCanvas: HTMLCanvasElement | null = null
 let lastRestore = 0
 
