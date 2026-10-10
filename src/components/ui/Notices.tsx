@@ -12,22 +12,22 @@ export default function Notices() {
     const id = window.setTimeout(() => setNotice(null), 6000)
     return () => window.clearTimeout(id)
   }, [notice, setNotice])
-  const top = 'top-[calc(max(0.75rem,env(safe-area-inset-top))+60px)] sm:top-[78px]'
+  const top = 'top-[calc(max(0.75rem,env(safe-area-inset-top))+102px)] sm:top-[78px]'
   return (
-    <>
+    <div className={`pointer-events-none absolute inset-x-3 ${top} flex flex-col items-center gap-2`}>
       {notice && (
-        <div role="status" className={`ui-glass ui-toast pointer-events-none absolute left-1/2 ${top} flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-[12px] font-medium`}>
+        <div role="status" className="ui-glass ui-toast flex max-w-full items-center gap-2 rounded-2xl px-4 py-2 text-center text-[12px] font-medium">
           <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ui-accent)]" aria-hidden="true" />
           {notice}
         </div>
       )}
       {error === 'lost' && (
-        <div role="alert" className={`ui-glass ui-toast pointer-events-auto absolute left-1/2 ${top} w-[min(92vw,420px)] -translate-x-1/2 rounded-3xl border-l-4 !border-l-[var(--ui-warn)] px-4 py-3 text-[13px] leading-snug`}>
+        <div role="alert" className={`ui-glass ui-toast pointer-events-auto w-[min(100%,420px)] rounded-3xl border-l-4 !border-l-[var(--ui-warn)] px-4 py-3 text-[13px] leading-snug`}>
           <strong className="block text-[var(--ui-warn)]">Graphics paused</strong>
           Graphics were paused by your device. They usually resume on their own, or{' '}
           <button className="ui-focus cursor-pointer rounded font-semibold underline underline-offset-2" onClick={() => window.location.reload()}>reload</button>.
         </div>
       )}
-    </>
+    </div>
   )
 }

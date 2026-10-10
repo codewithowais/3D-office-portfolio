@@ -28,7 +28,7 @@ const icons = {
 function Pick<T extends string>({ label, icon, value, options, onChange }: { label: string; icon: React.ReactNode; value: T; options: T[]; onChange: (v: T) => void }) {
   return (
     <label className="ui-select-wrap text-[12px]">
-      {icon}
+      <span className="hidden sm:inline-flex">{icon}</span>
       <span className="hidden text-[11px] font-medium sm:inline">{label}</span>
       <select aria-label={label} value={value} onChange={(e) => onChange(e.target.value as T)} className="ui-select">
         {options.map((o) => (
@@ -46,12 +46,12 @@ export default function TopBar() {
   const theme = useStore((s) => s.theme)
   const setTheme = useStore((s) => s.setTheme)
   return (
-    <header className="ui-glass pointer-events-auto absolute left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] flex h-[48px] items-center justify-between gap-2 rounded-full pl-2.5 pr-1.5 sm:left-4 sm:right-4 sm:h-[54px] sm:pl-3 sm:pr-2">
+    <header className="ui-glass pointer-events-auto absolute left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] flex h-[48px] items-center justify-between gap-2 rounded-full pl-4 pr-1.5 sm:left-4 sm:right-4 sm:h-[54px] sm:pl-3 sm:pr-2">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--ui-primary-bg)] text-[var(--ui-primary-fg)] shadow-[0_0_18px_-2px_var(--ui-glow)]" aria-hidden="true">
+        <span className="hidden h-8 w-8 shrink-0 place-items-center sm:grid rounded-full bg-[var(--ui-primary-bg)] text-[var(--ui-primary-fg)] shadow-[0_0_18px_-2px_var(--ui-glow)]" aria-hidden="true">
           <span className="h-3 w-3 rounded-[3px] border-[1.5px] border-current" />
         </span>
-        <span className="whitespace-nowrap text-[12px] font-bold tracking-[0.14em] text-[var(--ui-text)] sm:text-[13px]">{BRAND.name}</span>
+        <span className="whitespace-nowrap text-[11px] font-bold tracking-[0.1em] text-[var(--ui-text)] sm:text-[13px] sm:tracking-[0.14em]">{BRAND.name}</span>
         <span className="hidden items-center gap-2 border-l border-[var(--ui-border-inner)] pl-3 text-[10px] font-medium tracking-[0.18em] text-[var(--ui-faint)] md:flex">
           <span className="ui-dot h-1.5 w-1.5 rounded-full bg-[var(--ui-accent)]" />
           INTERACTIVE OFFICE

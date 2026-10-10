@@ -166,7 +166,9 @@ body {
 .ui-select-wrap:hover { border-color: var(--ui-accent); }
 .ui-select-wrap:focus-within { outline: 2px solid var(--ui-ring); outline-offset: 2px; }
 .ui-select-chev { position: absolute; right: 0.5rem; pointer-events: none; color: var(--ui-faint); }
-@media (pointer: coarse) { .ui-select { font-size: 16px; } }
+/* 16px stops iOS Safari zooming the page when a select is focused */
+@media (pointer: coarse) { .ui-select { font-size: 16px; padding-right: 1.3rem; } }
+@media (max-width: 639px) { .ui-select-wrap { padding-left: 0.4rem; } .ui-select-chev { right: 0.4rem; } }
 
 /* ---- focus ---- */
 .ui-focus:focus-visible,
@@ -188,8 +190,8 @@ body {
 }
 .ui-pop { animation: ui-pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: top left; }
 @keyframes ui-toast {
-  from { opacity: 0; transform: translate(-50%, -8px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
 }
 .ui-toast { animation: ui-toast 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes ui-pulse {
