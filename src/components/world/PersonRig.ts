@@ -55,6 +55,11 @@ export interface Rig {
   farSit: THREE.BufferGeometry
 }
 
+/** `c` mixed toward white by `k` (0..1). */
+function tint(c: string, k: number) {
+  return '#' + new THREE.Color(c).lerp(new THREE.Color('#ffffff'), k).getHexString()
+}
+
 const cache = new Map<string, Rig>()
 const EYE = '#1a1512'
 const SHOE_C = '#2a2622'
@@ -83,8 +88,17 @@ export function getRig(shirt: string, pants: string, skin: string, hair: string,
           paint(SPH, xf([0, 0.745, 0.15], [0.034, 0.011, 0.02]), '#b8434f'),
           paint(SPH, xf([-0.09, 0.775, 0.13], [0.03, 0.02, 0.01]), '#e59a8f'),
           paint(SPH, xf([0.09, 0.775, 0.13], [0.03, 0.02, 0.01]), '#e59a8f'),
-          paint(SPH, xf([-0.055, 0.835, 0.135], [0.038, 0.006, 0.012]), EYE),
-          paint(SPH, xf([0.055, 0.835, 0.135], [0.038, 0.006, 0.012]), EYE),
+          // bigger, brighter eyes with a highlight, long lashes and shaped brows
+          paint(SPH, xf([-0.055, 0.81, 0.14], [0.027, 0.032, 0.018]), '#2b1b12'),
+          paint(SPH, xf([0.055, 0.81, 0.14], [0.027, 0.032, 0.018]), '#2b1b12'),
+          paint(SPH, xf([-0.047, 0.82, 0.156], 0.009), '#ffffff'),
+          paint(SPH, xf([0.063, 0.82, 0.156], 0.009), '#ffffff'),
+          paint(SPH, xf([-0.055, 0.84, 0.138], [0.042, 0.007, 0.014]), EYE, ),
+          paint(SPH, xf([0.055, 0.84, 0.138], [0.042, 0.007, 0.014]), EYE),
+          paint(SPH, xf([-0.082, 0.838, 0.134], [0.012, 0.006, 0.012], [0, 0, 0.5]), EYE),
+          paint(SPH, xf([0.082, 0.838, 0.134], [0.012, 0.006, 0.012], [0, 0, -0.5]), EYE),
+          paint(SPH, xf([-0.058, 0.868, 0.13], [0.045, 0.006, 0.014], [0, 0, 0.12]), '#3a2a20'),
+          paint(SPH, xf([0.058, 0.868, 0.13], [0.045, 0.006, 0.014], [0, 0, -0.12]), '#3a2a20'),
         ]
       : []),
     // hijab: wrapped over the hair and neck, with a soft drape over the shoulders and chest; the face stays open
@@ -94,6 +108,13 @@ export function getRig(shirt: string, pants: string, skin: string, hair: string,
           paint(SPH, xf([0, 0.64, -0.01], [0.17, 0.12, 0.15]), scarf),
           paint(SPH, xf([0, 0.5, 0.0], [0.3, 0.14, 0.2]), scarf),
           paint(SPH, xf([0, 0.42, 0.1], [0.14, 0.17, 0.07]), scarf),
+          // lighter inner frame around the face, a gold brooch with a pearl, and a gold belt buckle
+          paint(SPH, xf([0, 0.885, 0.045], [0.155, 0.06, 0.11]), tint(scarf, 0.4)),
+          paint(SPH, xf([-0.145, 0.78, 0.01], [0.03, 0.12, 0.1]), tint(scarf, 0.25)),
+          paint(SPH, xf([0.145, 0.78, 0.01], [0.03, 0.12, 0.1]), tint(scarf, 0.25)),
+          paint(SPH, xf([0.1, 0.55, 0.15], 0.03), '#e8c26a'),
+          paint(SPH, xf([0.1, 0.55, 0.178], 0.016), '#fff6e6'),
+          paint(CAP, xf([0, 0.03, 0.115], [0.07, 0.04, 0.03], [0, 0, Math.PI / 2]), '#e8c26a'),
         ]
       : []),
     paint(CAP, xf([0, 0.66, 0], [0.09, 0.07, 0.09]), skin),
