@@ -42,6 +42,9 @@ export function readProgress(): Progress {
 }
 export const saveProgress = (p: Progress) => set('office:progress', JSON.stringify(p))
 
+export const readVisits = (): number => Number(get('office:visits')) || 0
+export const saveVisits = (n: number) => set('office:visits', String(n))
+
 export const DEFAULT_COLOR = '#ff6f59'
 export const readColor = () => get('office:color') || DEFAULT_COLOR
 export const saveColor = (c: string) => set('office:color', c)

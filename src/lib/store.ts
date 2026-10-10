@@ -3,8 +3,9 @@ import { clock } from './clock'
 import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
-import { NPCS, fill } from './dialogue'
-import { readColor, readFemale, saveFemale, readName, readSpeed, saveSpeed, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
+import { NPCS, fill, newGame, runAct, type Game, type Node } from './dialogue'
+import { isLate, openingLine, pick } from './social'
+import { readColor, readFemale, saveFemale, readName, readSpeed, readVisits, saveVisits, saveSpeed, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
 import { clock as worldClock } from './clock'
 import { escort, resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
@@ -40,6 +41,15 @@ const DONE_MSG: Record<ProgressKind, string> = {
   met: "You've met everyone in the office!",
   places: "You've visited every place!",
   things: "You've tried everything there is to try!",
+}
+
+/** The conversation in progress. `view` is a generated node (game results, quiz questions) that replaces the written one. */
+export interface Talk {
+  id: string
+  node: string
+  view?: Node
+  /** a context-aware opening line (time of day, return visits...) shown above the first thing they say */
+  intro?: string
 }
 
 export interface Flight {
@@ -83,7 +93,15 @@ interface State {
   /** 0 walk, 1 run, 2 sprint */
   speedLevel: number
   /** the conversation in progress */
-  talking: { id: string; node: string } | null
+  talking: Talk | null
+  /** how many times this browser has walked in */
+  visits: number
+  /** rock-paper-scissors tally and the quiz in progress */
+  game: Game
+  /** bumped to flash the screen white (selfie) */
+  flash: number
+  /** the office lights (the switch in the corridor) */
+  lights: boolean
   /** true once the user picked a quality themselves: auto-downgrade then stays out of the way */
   qualityLocked: boolean
   /** extra resolution multiplier applied when even Low struggles */
@@ -130,6 +148,7 @@ interface State {
   openNamePrompt: () => void
   startTalk: (id?: string) => void
   choose: (i: number) => void
+  doAct: (act: string) => void
   endTalk: () => void
 }
 
@@ -150,6 +169,7 @@ function relocate(x: number, z: number, room: string | null) {
   player.pose = 'stand'
   useStore.setState({ talking: null, nearby: null, nearBall: false, playing: false, greeting: null, activeRoom: room, flight: null })
 }
+let counted = false
 function initSpeed() {
   const n = readSpeed()
   motion.level = n
@@ -192,6 +212,10 @@ export const useStore = create<State>((set, get) => ({
   },
   speedLevel: initSpeed(),
   talking: null,
+  visits: 0,
+  game: newGame(),
+  flash: 0,
+  lights: true,
   chapter: 0,
   activeRoom: null,
   flight: dev.reducedMotion ? { pos: [0, 62, 58], target: [0, 0, 0], nonce: 1 } : null,
@@ -242,6 +266,12 @@ export const useStore = create<State>((set, get) => ({
     set({ mode: 'demo', walk: false, away: false, talking: null, nearby: null, paused: false, chapter: 0, activeRoom: null, flight: null })
   },
   startWalk: () => {
+    if (!counted) {
+      counted = true
+      const visits = readVisits() + 1
+      saveVisits(visits)
+      set({ visits })
+    }
     resetPlayer()
     player.visible = true
     set({
@@ -330,37 +360,37 @@ export const useStore = create<State>((set, get) => ({
     player.speed = 0
     cancelWalkTo()
     // some things are used, not talked to
-    if (tk.action) {
-      const now = worldClock.t
-      if (tk.action === 'sit' && tk.seat) {
-        sitAt(tk.id, tk.seat)
-        set({ seated: true, nearby: null })
-      } else if (tk.action === 'coffee') {
-        doPose('drink', now, 3.4)
-        set({ notice: 'Fresh coffee. Exactly what you needed.' })
-      } else if (tk.action === 'bell') {
-        doPose('wave', now, 1.3)
-        set({ notice: 'Ding! Ayesha: Welcome! Ask me for a tour whenever you like.' })
-      } else if (tk.action === 'guestbook') {
-        const n = get().playerName
-        set({ notice: n ? `You signed the guestbook, ${n}.` : 'You signed the guestbook.' })
-      } else if (tk.action === 'honk') {
-        set({ notice: 'Beep beep!' })
-      } else if (tk.action === 'water') {
-        doPose('water', now, 3.8)
-        set({ notice: 'The plant looks much happier.' })
-      }
+    if (tk.action === 'sit' && tk.seat) {
+      sitAt(tk.id, tk.seat)
+      set({ seated: true, nearby: null })
       get().mark('things', tk.id)
+      return
+    }
+    if (tk.use) {
+      const u = tk.use
+      const st = get()
+      let say: string
+      if (u.fx === 'lights') {
+        const on = !st.lights
+        set({ lights: on })
+        say = u.say[on ? 0 : 1] ?? u.say[0]
+      } else say = pick(isLate(new Date().getHours()) && u.late ? u.late : u.say)
+      if (u.pose) doPose(u.pose, worldClock.t, u.secs ?? 2)
+      set({ notice: fill(say, st.playerName) })
+      st.mark('things', tk.id)
       return
     }
     if (!NPCS[tk.id]) return
     get().mark(tk.kind === 'person' ? 'met' : 'things', tk.id)
-    set({ talking: { id: tk.id, node: 'hi' } })
+    const st = get()
+    const c = { name: st.playerName, hour: new Date().getHours(), visits: st.visits, done: st.progress.met.length + st.progress.places.length + st.progress.things.length, total: PROGRESS_TOTAL.met + PROGRESS_TOTAL.places + PROGRESS_TOTAL.things }
+    const intro = tk.kind === 'person' ? openingLine(c, tk.id.length + st.visits + st.progress.met.length) : undefined
+    set({ talking: { id: tk.id, node: 'hi', intro } })
   },
   choose: (i) => {
     const t = get().talking
     if (!t) return
-    const opt = NPCS[t.id]?.nodes[t.node]?.options[i]
+    const opt = (t.view ?? NPCS[t.id]?.nodes[t.node])?.options[i]
     if (!opt) return
     if (opt.href) {
       // links open without leaving the conversation
@@ -368,6 +398,7 @@ export const useStore = create<State>((set, get) => ({
       else window.open(opt.href, '_blank', 'noopener,noreferrer')
       return
     }
+    if (opt.act) return get().doAct(opt.act)
     if (opt.action === 'askName') return set({ askName: true, talking: null })
     if (opt.action === 'escort') {
       // Ayesha starts the guided tour from wherever she is standing right now
@@ -385,6 +416,20 @@ export const useStore = create<State>((set, get) => ({
     if (ends) return set({ talking: null })
     const next = opt.next && NPCS[t.id].nodes[opt.next] ? opt.next : 'hi'
     set({ talking: { id: t.id, node: next } })
+  },
+  doAct: (act) => {
+    const st = get()
+    const t = st.talking
+    if (!t) return
+    const c = { name: st.playerName, hour: new Date().getHours(), visits: st.visits, done: 0, total: 0 }
+    const r = runAct(t.id, act, c, st.game)
+    if (r.pose) doPose(r.pose, worldClock.t, r.secs ?? 2)
+    if (r.flash) {
+      // a selfie closes the conversation: white flash and a notice
+      set({ talking: null, flash: performance.now(), notice: r.notice ?? null })
+      return
+    }
+    set({ talking: { id: t.id, node: t.node, view: r.view }, game: r.game ? { ...st.game, ...r.game } : st.game })
   },
   endTalk: () => set({ talking: null }),
 }))

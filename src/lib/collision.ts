@@ -53,6 +53,11 @@ obstacles.push(
   box(8, -13.1, 1.5, 0.5), // boss sofa
   { x0: 19.3, x1: 19.9, z0: -11.1, z1: -6.9 }, // boss shelf
   box(18.2, 2.4, 0.85, 0.45),
+  box(2.6, -3.2, 0.25, 0.25), // water cooler
+  box(19.35, 6.4, 0.5, 0.5), // vending machine
+  box(-19.4, -7, 0.35, 0.5), // printer
+  box(-2.7, -5, 0.2, 0.2), // bin
+  box(2.7, 5.6, 0.15, 0.15), // extinguisher
 )
 for (const x of [-17.4, -13.6, -9.8, -6]) obstacles.push(box(x, 0, 0.85, 0.85)) // studio pods
 for (const z of [-11.6, -7]) for (const x of [-17, -12.6, -8.2]) obstacles.push(box(x, z, 0.85, 0.85)) // operations
