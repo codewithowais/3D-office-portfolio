@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import { NPCS } from '@/lib/dialogue'
+import { NPCS, fill } from '@/lib/dialogue'
 import { useStore } from '@/lib/store'
+import NameGate from './NameGate'
 
 const anchor = 'absolute left-3 right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+104px)] sm:left-[232px] sm:right-4 sm:top-[76px]'
 
@@ -10,10 +11,15 @@ export default function Dialogue() {
   const walk = useStore((s) => s.walk)
   const nearby = useStore((s) => s.nearby)
   const talking = useStore((s) => s.talking)
+  const asking = useStore((s) => s.askName)
   if (!walk) return null
-  if (talking) return <Conversation id={talking.id} node={talking.node} />
-  if (nearby && NPCS[nearby]) return <Prompt id={nearby} />
-  return null
+  return (
+    <>
+      <NameGate />
+      {!asking && talking && <Conversation id={talking.id} node={talking.node} />}
+      {!asking && !talking && nearby && NPCS[nearby] && <Prompt id={nearby} />}
+    </>
+  )
 }
 
 function Prompt({ id }: { id: string }) {
@@ -40,6 +46,7 @@ function Prompt({ id }: { id: string }) {
 function Conversation({ id, node }: { id: string; node: string }) {
   const choose = useStore((s) => s.choose)
   const endTalk = useStore((s) => s.endTalk)
+  const playerName = useStore((s) => s.playerName)
   const npc = NPCS[id]
   const n = npc.nodes[node]
   const box = useRef<HTMLDivElement>(null)
@@ -69,7 +76,7 @@ function Conversation({ id, node }: { id: string; node: string }) {
             ✕
           </button>
         </div>
-        <p className="text-[14px] leading-relaxed text-[var(--ui-text)]">{n.text}</p>
+        <p className="text-[14px] leading-relaxed text-[var(--ui-text)]">{fill(n.text, playerName)}</p>
         <ul className="mt-4 grid gap-1.5">
           {n.options.map((o, i) => (
             <li key={`${node}-${i}`}>
@@ -78,7 +85,8 @@ function Conversation({ id, node }: { id: string; node: string }) {
                 className="ui-row ui-focus flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[var(--ui-border-inner)] px-3 py-2.5 text-left text-[13px] !text-[var(--ui-text)] hover:!border-[var(--ui-accent)]"
               >
                 <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-[var(--ui-accent-soft)] text-[10px] font-semibold text-[var(--ui-accent)]">{i + 1}</span>
-                {o.label}
+                <span className="flex-1">{o.label}</span>
+                {o.href && <span aria-hidden className="text-[var(--ui-faint)]">↗</span>}
               </button>
             </li>
           ))}
