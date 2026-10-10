@@ -280,16 +280,31 @@ function WalkClick() {
       pointers.delete(e.pointerId)
       down = null
     }
+    // dragging or scrolling the picture during the guided tour takes the camera over (free look)
+    const takeOver = () => {
+      const st = useStore.getState()
+      if (st.mode !== 'demo' || st.walk) return
+      st.setMode('explore')
+      st.setNotice('Free look: drag to rotate, scroll to zoom, right-drag to pan. "Start demo" resumes the tour.')
+    }
+    const onMove = (e: PointerEvent) => {
+      if (down && e.buttons && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) takeOver()
+    }
+    const onWheel = () => takeOver()
     const onKey = (e: KeyboardEvent) => {
       if (!['ShiftLeft', 'ShiftRight', 'ControlLeft', 'MetaLeft', 'AltLeft'].includes(e.code)) cancelWalkTo()
     }
     el.addEventListener('pointerdown', onDown)
     el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('wheel', onWheel, { passive: true })
     el.addEventListener('pointercancel', onCancel)
     window.addEventListener('keydown', onKey)
     return () => {
       el.removeEventListener('pointerdown', onDown)
       el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('wheel', onWheel)
       el.removeEventListener('pointercancel', onCancel)
       window.removeEventListener('keydown', onKey)
     }
