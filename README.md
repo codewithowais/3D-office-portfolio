@@ -47,7 +47,7 @@ On a phone there is an on-screen pad, a "Hold to run" button and tappable speed 
 A **Back to office** button appears when you are on the pitch or outside the compound, and the Rooms menu works from anywhere.
 
 ### Interact
-- **People**: reception (Ayesha), the guard, the boss (Owais) and seven more colleagues with Pakistani names, plus a visitor. They greet you by name when you come close.
+- **People**: reception (Ayesha), the guard, the CEO (Amna Owais, in a hijab) and seven more colleagues with Pakistani names, plus a visitor. They greet you by name when you come close.
   Walk up so that nothing (a desk, a counter, a wall) is between you, then press **E**. Conversations stay open until you walk away or say goodbye, and use real details from Owais's portfolio.
 - **Chat or do something together** with anyone: small talk, jokes, advice, compliments, handshake, high-five, fist bump, give a coffee, take a selfie, rock-paper-scissors, and a 3-question quiz about Owais.
 - **Ayesha** can show you around the office (a guided walk through the rooms), take you to any room, or sign you in.

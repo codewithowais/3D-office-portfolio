@@ -128,7 +128,7 @@ export const TALKABLES: Talkable[] = [
   chair('seat-sofa2', 'Sit on the sofa', { x: 18.6, z: 9.5, heading: -Math.PI / 2, exit: [16.9, 9.5] }),
   chair('seat-reception', 'Take a seat', { x: -15.5, z: 11.2, heading: Math.PI / 2, exit: [-13.4, 11.2] }),
   chair('seat-meeting', 'Sit at the table', { x: 4.2, z: 9, heading: Math.PI / 2, exit: [3.9, 6] }),
-  chair('seat-boss', "Sit across from Owais", { x: 12.6, z: -7.4, heading: Math.PI / 2, exit: [10.6, -7.4] }),
+  chair('seat-boss', "Sit across from Amna", { x: 12.6, z: -7.4, heading: Math.PI / 2, exit: [10.6, -7.4] }),
   chair('seat-bench', 'Sit on the bench', { x: -42.2, z: -15.35, heading: 0, y: -0.24, exit: [-42.2, -13.6] }, 0.9),
   chair('seat-studio', 'Work at the free desk', { x: -9.8, z: 1.4, heading: Math.PI, pose: 'type', exit: [-9.8, 3.1] }),
   chair('seat-ops', 'Work at the free desk', { x: -12.6, z: -10.2, heading: Math.PI, pose: 'type', exit: [-12.6, -9.2] }),

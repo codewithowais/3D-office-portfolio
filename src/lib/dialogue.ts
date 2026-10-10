@@ -76,33 +76,33 @@ export const NPCS: Record<string, Npc> = {
   /* ---------------- Owais himself: the Boss Cabin ---------------- */
   boss: {
     id: 'boss',
-    name: 'Owais',
-    role: 'Staff Software Engineer',
+    name: 'Amna Owais',
+    role: 'CEO',
     accent: '#ff6f59',
     nodes: {
       hi: {
-        text: `Hi {name}, I'm Owais, nice to meet you! Welcome to my office. I build web and mobile products, and teach Flutter on the side. What would you like to know?`,
+        text: `Assalam-o-Alaikum {name}, I'm Amna Owais, the CEO. Welcome to my office! Our lead engineer, Muhammad Owais Ahmed, builds web and mobile products and teaches Flutter on the side, and this is his portfolio. What would you like to know?`,
         options: [
-          { label: 'Tell me about yourself', next: 'about' },
-          { label: 'What have you built?', next: 'work' },
-          { label: "What's your tech stack?", next: 'stack' },
+          { label: 'Tell me about Owais', next: 'about' },
+          { label: 'What has Owais built?', next: 'work' },
+          { label: "What's his tech stack?", next: 'stack' },
           { label: 'Open source and AI work', next: 'oss' },
-          { label: 'Are you available to hire?', next: 'hire' },
+          { label: 'Is he available to hire?', next: 'hire' },
           { label: 'How was this office built?', next: 'tech' },
           { label: 'Tell me something fun', next: 'fun' },
           { label: 'Just looking around' },
         ],
       },
       about: {
-        text: "I'm a Staff Software Engineer from Karachi, Pakistan, with six years of building production web and mobile apps. I've been on the founding team at SimpliEd since day one, and I'm the Lead Trainer for Flutter at Jawan Pakistan.",
-        options: [{ label: 'What do you do at SimpliEd?', next: 'simplied' }, { label: 'Tell me about teaching', next: 'teach' }, { label: 'Education?', next: 'edu' }, back('hi')],
+        text: "Owais is a Staff Software Engineer from Karachi, Pakistan, with six years of building production web and mobile apps. He has been on the founding team at SimpliEd since day one, and he is the Lead Trainer for Flutter at Jawan Pakistan.",
+        options: [{ label: 'What does he do at SimpliEd?', next: 'simplied' }, { label: 'Tell me about teaching', next: 'teach' }, { label: 'Education?', next: 'edu' }, back('hi')],
       },
       edu: {
-        text: "I'm studying BS Computer Science at Virtual University of Pakistan (2023 to 2027). Before that I did Pre-Engineering at Superior Govt College, Karachi. Most of what I know I learned by shipping things.",
+        text: "He is studying BS Computer Science at Virtual University of Pakistan (2023 to 2027), after Pre-Engineering at Superior Govt College, Karachi. Most of what he knows he learned by shipping things.",
         options: [back('about')],
       },
       teach: {
-        text: 'At Jawan Pakistan I designed the whole Flutter curriculum and have trained over 1,200 developers across 11 cohorts, from their very first widget to apps published on the App Store and Play Store.',
+        text: 'At Jawan Pakistan he designed the whole Flutter curriculum and has trained over 1,200 developers across 11 cohorts, from their very first widget to apps published on the App Store and Play Store.',
         options: [back('about')],
       },
       work: {
@@ -119,7 +119,7 @@ export const NPCS: Record<string, Npc> = {
         ],
       },
       simplied: {
-        text: 'SimpliEd is a school-management platform that grew from zero to 25,000+ users across 10 schools. I architected the Node.js and MongoDB backend, built the Angular web app and the Flutter QR-attendance and parent apps, ran the AWS infrastructure and CI/CD, and led code review for a team of five or six engineers.',
+        text: 'SimpliEd is a school-management platform that grew from zero to 25,000+ users across 10 schools. He architected the Node.js and MongoDB backend, built the Angular web app and the Flutter QR-attendance and parent apps, ran the AWS infrastructure and CI/CD, and led code review for a team of five or six engineers.',
         options: [{ label: 'Open simpliedtech.com', href: 'https://simpliedtech.com' }, back('work')],
       },
       ledgerly: {
@@ -131,7 +131,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'View the code', href: 'https://github.com/codewithowais/ai-study-planner' }, back('work')],
       },
       devpath: {
-        text: "DevPath is a beginner-friendly learning and career platform with 200+ runnable lessons. My favourite feature is 'Watch it sort', a live visualizer that animates each sorting algorithm step by step from the lesson's own code.",
+        text: "DevPath is a beginner-friendly learning and career platform with 200+ runnable lessons. The favourite feature is 'Watch it sort', a live visualizer that animates each sorting algorithm step by step from the lesson's own code.",
         options: [{ label: 'Open DevPath', href: 'https://dev-path-by-codewithowais.vercel.app' }, back('work')],
       },
       tictactoe: {
@@ -139,7 +139,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'Play it', href: 'https://tictactoe-live.vercel.app' }, back('work')],
       },
       zulaal: {
-        text: 'Zulaal is a brand website for a premium Pakistani water company, with a three.js 3D hero, custom bottle orders and a Firebase admin panel. It is where my 3D work started, and it led to this very office.',
+        text: 'Zulaal is a brand website for a premium Pakistani water company, with a three.js 3D hero, custom bottle orders and a Firebase admin panel. It is where his 3D work started, and it led to this very office.',
         options: [{ label: 'Open Zulaal', href: 'https://zulaal.vercel.app' }, back('work')],
       },
       oss: {
@@ -152,20 +152,20 @@ export const NPCS: Record<string, Npc> = {
         ],
       },
       fun: {
-        text: "I teach what I build: the Flutter lessons at Jawan Pakistan feed back into the apps I ship. Mini Gantt, for instance, is a dependency-free drag-and-resize Gantt chart. And this office is a portfolio you can walk around in.",
-        options: [{ label: 'Can you build something like this for me?', next: 'hire' }, back('hi')],
+        text: "Owais teaches what he builds: the Flutter lessons at Jawan Pakistan feed back into the apps he ships. Mini Gantt, for instance, is a dependency-free drag-and-resize Gantt chart. And this office is a portfolio you can walk around in.",
+        options: [{ label: 'Can Owais build something like this for me?', next: 'hire' }, back('hi')],
       },
       stack: {
         text: 'TypeScript, JavaScript, Dart, C# and Python. Angular, React, Next.js and Flutter on the front; Node.js, NestJS and .NET Core on the back. MongoDB, PostgreSQL, SQL Server and Redis for data, and AWS, Docker and GitHub Actions to ship.',
         options: [{ label: 'What have you built with it?', next: 'work' }, back('hi')],
       },
       hire: {
-        text: "I'm open to freelance, contract and full-time roles: remote worldwide, on-site in Karachi, and open to relocating to the Gulf (UAE and Saudi Arabia). Let's talk!",
+        text: "Owais is open to freelance, contract and full-time roles: remote worldwide, on-site in Karachi, and open to relocating to the Gulf (UAE and Saudi Arabia). Let's talk!",
         options: [...contactOptions, back('hi')],
       },
       tech: {
         text: 'This office is Next.js and React Three Fiber. Every wall, car and person is generated in code, nothing is a downloaded model, and it adapts its quality to your device so it stays smooth even on a phone.',
-        options: [{ label: 'Can you build something like this for me?', next: 'hire' }, back('hi')],
+        options: [{ label: 'Can Owais build something like this for me?', next: 'hire' }, back('hi')],
       },
     },
   },
@@ -178,9 +178,10 @@ export const NPCS: Record<string, Npc> = {
     accent: '#17a2a4',
     nodes: {
       hi: {
-        text: `Welcome to the office of Muhammad Owais Ahmed, {name}! I'm Ayesha, I look after every visitor. What would you like to know?`,
+        text: `Welcome to the office of Muhammad Owais Ahmed and our CEO Amna Owais, {name}! I'm Ayesha, I look after every visitor. What would you like to know?`,
         options: [
           { label: 'Who is Owais?', next: 'who' },
+          { label: 'Who is the CEO?', next: 'ceo' },
           { label: 'Is he available to hire?', next: 'hire' },
           { label: 'Show me around the office', action: 'escort' },
           { label: 'Take me somewhere', next: 'go' },
@@ -196,7 +197,11 @@ export const NPCS: Record<string, Npc> = {
       },
       who: {
         text: 'Owais is a Staff Software Engineer from Karachi with six years of experience in Angular, React, Node.js, .NET and Flutter. He is on the founding team at SimpliEd, which serves 25,000+ users, and he is Lead Trainer for Flutter at Jawan Pakistan.',
-        options: [{ label: 'Take me to meet him', teleport: [9, -9] }, { label: 'Who else works here?', next: 'team' }, back('hi')],
+        options: [{ label: 'Take me to meet Amna', teleport: [9, -9] }, { label: 'Who else works here?', next: 'team' }, back('hi')],
+      },
+      ceo: {
+        text: 'Amna Owais is our CEO. She runs the company, keeps every project on track and welcomes visitors in the Boss Cabin. She is always happy to meet people.',
+        options: [{ label: 'Take me to meet her', teleport: [9, -9] }, back('hi')],
       },
       team: {
         text: 'Hamza covers the front end, Sana the backend and cloud, Zain the 3D and design, Mahnoor the mobile apps, and Usman the training and mentoring. Each of them can tell you about that side of his work. Walk up and press E.',
@@ -213,7 +218,7 @@ export const NPCS: Record<string, Npc> = {
       go: {
         text: 'Of course. Where to?',
         options: [
-          { label: "Owais's cabin", teleport: [9, -9] },
+          { label: "Amna's cabin", teleport: [9, -9] },
           { label: 'The Work Studio', teleport: [-12, 2.6] },
           { label: 'The Design Room', teleport: [11, 1.2] },
           { label: 'The Meeting Room', teleport: [7.5, 6.2] },
@@ -549,7 +554,7 @@ const SMALL: Record<string, [string, string]> = {
   usman: ['Relaxed. This sofa is undefeated.', 'Beginners learn fastest by building something real in the first week.'],
   bilal: ['Great match. Red is a player short, as you know.', 'A good pass finds the player in space, not the one standing still.'],
   hira: ['Enjoying the game with Bilal.', 'The goal red attacks is the left one. Remember that when you shoot!'],
-  boss: ['Pretty good: code reviews, a little shipping and plenty of coffee.', 'I started with a small website for a school and it never stopped growing: that became SimpliEd.'],
+  boss: ['Pretty good: planning, meetings, a little shipping and plenty of chai.', 'Owais started with a small website for a school and it never stopped growing: that became SimpliEd.'],
   visitor: ['Excited! This is not what I expected from a portfolio.', 'I was told the whole city around the office is built in code.'],
 }
 for (const [id, [day, fact]] of Object.entries(SMALL)) {

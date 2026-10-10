@@ -59,8 +59,8 @@ const cache = new Map<string, Rig>()
 const EYE = '#1a1512'
 const SHOE_C = '#2a2622'
 
-export function getRig(shirt: string, pants: string, skin: string, hair: string, female = false): Rig {
-  const key = `${shirt}|${pants}|${skin}|${hair}|${female ? 'f' : 'm'}`
+export function getRig(shirt: string, pants: string, skin: string, hair: string, female = false, scarf = ''): Rig {
+  const key = `${shirt}|${pants}|${skin}|${hair}|${female ? 'f' : 'm'}|${scarf}`
   const hit = cache.get(key)
   if (hit) return hit
 
@@ -72,10 +72,28 @@ export function getRig(shirt: string, pants: string, skin: string, hair: string,
     ...(female
       ? [
           paint(CAP, xf([0, -0.12, 0], [0.5, 0.2, 0.34], [0, 0, Math.PI / 2]), pants),
-          paint(SPH, xf([0, 0.74, -0.075], [0.18, 0.26, 0.14]), hair),
-          paint(SPH, xf([-0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
-          paint(SPH, xf([0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
-          paint(SPH, xf([-0.055, 0.84, 0.128], [0.03, 0.008, 0.02]), '#c45a62'),
+          ...(scarf
+            ? []
+            : [
+                paint(SPH, xf([0, 0.74, -0.075], [0.18, 0.26, 0.14]), hair),
+                paint(SPH, xf([-0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
+                paint(SPH, xf([0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
+              ]),
+          // lips, soft blush, lashes and brows
+          paint(SPH, xf([0, 0.745, 0.15], [0.034, 0.011, 0.02]), '#b8434f'),
+          paint(SPH, xf([-0.09, 0.775, 0.13], [0.03, 0.02, 0.01]), '#e59a8f'),
+          paint(SPH, xf([0.09, 0.775, 0.13], [0.03, 0.02, 0.01]), '#e59a8f'),
+          paint(SPH, xf([-0.055, 0.835, 0.135], [0.038, 0.006, 0.012]), EYE),
+          paint(SPH, xf([0.055, 0.835, 0.135], [0.038, 0.006, 0.012]), EYE),
+        ]
+      : []),
+    // hijab: wrapped over the hair and neck, with a soft drape over the shoulders and chest; the face stays open
+    ...(scarf
+      ? [
+          paint(SPH, xf([0, 0.83, -0.035], [0.19, 0.215, 0.185]), scarf),
+          paint(SPH, xf([0, 0.64, -0.01], [0.17, 0.12, 0.15]), scarf),
+          paint(SPH, xf([0, 0.5, 0.0], [0.3, 0.14, 0.2]), scarf),
+          paint(SPH, xf([0, 0.42, 0.1], [0.14, 0.17, 0.07]), scarf),
         ]
       : []),
     paint(CAP, xf([0, 0.66, 0], [0.09, 0.07, 0.09]), skin),

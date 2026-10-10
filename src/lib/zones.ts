@@ -19,7 +19,7 @@ const room = (id: string, sub: string): Zone => {
 
 /** Named places you can discover. The first matching zone wins, so specific ones come first. */
 export const ZONES: Zone[] = [
-  room('boss', 'Owais’s own cabin: his desk, his bookshelf, a chair for visitors'),
+  room('boss', 'Amna’s own cabin: her desk, the bookshelf, a chair for visitors'),
   room('reception', 'Ayesha’s front desk. Ring the bell, or ask for a tour'),
   room('studio', 'Where Hamza builds the front end. There’s a free desk if you want to work'),
   room('design', 'Zain’s corner for 3D and design'),

@@ -27,7 +27,7 @@ const ROUTE: Stop[] = [
   { x: 0, z: 6, face: Math.PI / 2, say: 'On your right: the Meeting Room, and behind it the Lounge where Usman relaxes.', wait: 3.2, pose: 'talk' },
   { x: 0, z: 0, face: -Math.PI / 2, say: 'The Work Studio is on your left and the Design Room on your right. Hamza and Zain work there.', wait: 3.4, pose: 'talk' },
   { x: 0, z: -6, face: -Math.PI / 2, say: 'Operations is on the left. Sana keeps the backend and cloud running from there.', wait: 3.2, pose: 'talk' },
-  { x: 0, z: -8.6, face: Math.PI / 2, say: 'And this is the Boss Cabin. Owais is expecting you.', wait: 2.6, pose: 'talk' },
+  { x: 0, z: -8.6, face: Math.PI / 2, say: 'And this is the Boss Cabin. Amna Owais, our CEO, is expecting you.', wait: 2.6, pose: 'talk' },
   { x: 1.1, z: -7.4, face: Math.PI / 2, say: 'Go on in, {name}!', wait: 2.4, pose: 'wave' },
 ]
 const BACK: Stop[] = [{ x: 0, z: -3 }, { x: 0, z: 7 }, { x: -3.5, z: 9.2 }, { x: -4, z: 7.2 }, { x: DESK.x, z: DESK.z }]

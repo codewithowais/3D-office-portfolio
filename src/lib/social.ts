@@ -76,7 +76,7 @@ export const PERSONAL: Record<string, { joke?: string; advice?: string }> = {
   bilal: { joke: '"Why is the pitch always wet? The players dribble." Bilal slaps his knee.', advice: '"Look up before you pass, {name}. The best option is rarely the closest one."' },
   hira: { joke: '"Our goalkeeper is like a good bug fix: you only notice when it is missing." Hira smirks.', advice: '"Stay in space, {name}. Keep moving and the ball will find you."' },
   visitor: { joke: '"The recruiter and the developer walk into a bar. The bar says: we are hiring!" Faisal laughs.', advice: '"Keep your portfolio honest and your code on GitHub, {name}. That is what recruiters look at."' },
-  boss: { joke: '"I told my computer I needed a break. It said: I will just refresh." Owais laughs.', advice: '"Learn by shipping, {name}. Pick a small idea, build it this week and put it online."' },
+  boss: { joke: '"I told my computer I needed a break. It said: I will just refresh." Amna laughs.', advice: '"Learn by shipping, {name}. Pick a small idea, build it this week and put it online."' },
 }
 
 export const MOVES = ['Rock', 'Paper', 'Scissors'] as const
