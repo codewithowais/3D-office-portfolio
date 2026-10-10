@@ -136,7 +136,7 @@ export default function Scene() {
       gl={{ antialias: false, toneMapping: THREE.NoToneMapping, powerPreference: 'high-performance' }}
     >
       <color attach="background" args={[t.fog]} />
-      <fog attach="fog" args={[t.fog, 380, 1500]} />
+      <fog attach="fog" args={[t.fog, 520, 3600]} />
       <Sky />
       <Lighting />
       <Lights />
