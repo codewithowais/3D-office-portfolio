@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Walk through a living 3D office and its neighbourhood: reception, studio, meeting rooms, the boss cabin and more.',
 }
 
-export const viewport: Viewport = { themeColor: '#dcecf4' }
+export const viewport: Viewport = { themeColor: '#dcecf4', viewportFit: 'cover', width: 'device-width', initialScale: 1 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
