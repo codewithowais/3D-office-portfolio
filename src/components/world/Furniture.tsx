@@ -15,7 +15,7 @@ export function Sitter({ p, r = 0, i, pose = 'type' }: { p: V3; r?: number; i: n
     const s: Sample = { x: p[0], y: p[1], z: p[2], heading: r, speed: 0, pose, visible: true }
     return () => s
   }, [p, r, pose])
-  return <Person sample={sample} {...look(i, SHIRTS, PANTS)} scale={0.96 + ((i * 7) % 5) * 0.018} />
+  return <Person still sample={sample} {...look(i, SHIRTS, PANTS)} scale={0.96 + ((i * 7) % 5) * 0.018} />
 }
 
 export function Chair({ p, r = 0, c = '#17a2a4' }: { p: V3; r?: number; c?: string }) {

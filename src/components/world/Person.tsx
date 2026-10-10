@@ -20,6 +20,8 @@ export const HAIRS = ['#1c1714', '#3a2a1e', '#5a3d27', '#12100f', '#6b4b2d']
 interface Props extends Look {
   sample: (t: number) => Sample
   scale?: number
+  /** Constant sample (seated staff): frozen while far from the camera. */
+  still?: boolean
   /** Wrap time so scripted actors loop in explore mode. */
   loop?: number
 }
@@ -34,7 +36,7 @@ const SPRAY = Array.from({ length: 9 }, (_, i) => i)
  * Poses: walk/run (from speed), sit, type, water, wave. Everything is driven by the world clock,
  * so pausing the tour freezes the animation too.
  */
-export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop }: Props) {
+export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop, still }: Props) {
   const root = useRef<THREE.Group>(null)
   const hips = useRef<THREE.Group>(null)
   const torso = useRef<THREE.Mesh>(null)
@@ -52,9 +54,11 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     [shirt, pants, skin, hair],
   )
 
-  useFrame(() => {
+  useFrame(({ camera }) => {
     const g = root.current
     if (!g) return
+    // seated people far from the camera are frozen after their first update (imperceptible, saves CPU)
+    if (still && st.current.init && camera.position.distanceToSquared(g.position) > 4900) return
     const t = loop ? clock.t % loop : clock.t
     const s = sample(t)
     g.visible = s.visible
@@ -70,7 +74,7 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     g.rotation.y = k.heading
 
     const seated = s.pose === 'sit' || s.pose === 'type'
-    const sd = moving ? dt : 0
+        const sd = moving ? dt : 0
     k.sit += ((seated ? 1 : 0) - k.sit) * clamp(sd * 8)
     const run = s.speed > 2.6
     const amp = clamp(s.speed / 1.5) * (run ? 0.72 : 0.55)
