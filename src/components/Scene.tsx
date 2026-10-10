@@ -6,6 +6,9 @@ import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import { dprFor, getDevice } from '@/lib/device'
 import { player, stepPlayer } from '@/lib/player'
+import { fill } from '@/lib/dialogue'
+import { escort, updateEscort } from '@/lib/escort'
+import { inPitch, soccer, startSoccer, updateSoccer } from '@/lib/soccer'
 import { TALKABLES, TALK_RANGE, spotOf } from '@/lib/talkables'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
@@ -122,6 +125,24 @@ function Director() {
             }
           }
           if (best !== st.nearby) st.setNearby(best)
+        }
+        // Priya's guided tour, and the football match once you step onto the pitch
+        updateEscort(dt, player)
+        if (escort.say) {
+          st.setNotice(`Priya: ${fill(escort.say, st.playerName)}`)
+          escort.say = ''
+        }
+        if (!soccer.active && inPitch(player.x, player.z)) {
+          startSoccer(clock.t)
+          st.setNotice("You're playing for red. Score in the left goal! Run into the ball, press E to kick.")
+        }
+        if (soccer.active) {
+          updateSoccer(dt, clock.t, player)
+          if (soccer.announce) {
+            st.setNotice(soccer.announce)
+            soccer.announce = ''
+          }
+          if (soccer.nearBall !== st.nearBall) st.setNearBall(soccer.nearBall)
         }
         // move the camera by however far the player moved this frame (walking or teleporting)
         camera.position.x += player.x - l.x

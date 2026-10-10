@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import { NPCS, fill } from '@/lib/dialogue'
+import { soccer } from '@/lib/soccer'
 import { useStore } from '@/lib/store'
 import NameGate from './NameGate'
 
@@ -12,13 +13,34 @@ export default function Dialogue() {
   const nearby = useStore((s) => s.nearby)
   const talking = useStore((s) => s.talking)
   const asking = useStore((s) => s.askName)
+  const nearBall = useStore((s) => s.nearBall)
   if (!walk) return null
   return (
     <>
       <NameGate />
       {!asking && talking && <Conversation id={talking.id} node={talking.node} />}
       {!asking && !talking && nearby && NPCS[nearby] && <Prompt id={nearby} />}
+      {!asking && !talking && !nearby && nearBall && <KickPrompt />}
     </>
+  )
+}
+
+function KickPrompt() {
+  return (
+    <div className={`${anchor} pointer-events-none flex sm:justify-start`}>
+      <button
+        onClick={() => {
+          soccer.kickRequest = true
+        }}
+        className="ui-glass ui-btn ui-pop pointer-events-auto flex items-center gap-3 !rounded-full py-2 pl-2 pr-5 text-left text-[13px] text-[var(--ui-text)]"
+      >
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-[var(--ui-accent)] text-[11px] font-semibold text-white">E</span>
+        <span>
+          <strong className="font-semibold">Kick the ball</strong>
+          <span className="ml-1.5 text-[var(--ui-muted)]">or run into it</span>
+        </span>
+      </button>
+    </div>
   )
 }
 

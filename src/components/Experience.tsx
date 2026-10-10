@@ -4,6 +4,8 @@ import { receptionist, TOUR_LEN, visitor } from '@/lib/actors'
 import { clock } from '@/lib/clock'
 import { getDevice } from '@/lib/device'
 import { input, player } from '@/lib/player'
+import { escort } from '@/lib/escort'
+import { soccer } from '@/lib/soccer'
 import { useStore } from '@/lib/store'
 import { ErrorBoundary, Fallback } from './ErrorBoundary'
 import Overlay from './Overlay'
@@ -50,7 +52,7 @@ export default function Experience() {
     // Deep link into the tour, e.g. /?t=60. Also handy for debugging in dev.
     const t = Number(new URLSearchParams(window.location.search).get('t'))
     if (t > 0) clock.t = t
-    if (process.env.NODE_ENV !== 'production') (window as unknown as Record<string, unknown>).__office = { clock, player, input, store: useStore, marks: { visitor: visitor.marks, receptionist: receptionist.marks, TOUR_LEN } }
+    if (process.env.NODE_ENV !== 'production') (window as unknown as Record<string, unknown>).__office = { clock, player, input, soccer, escort, store: useStore, marks: { visitor: visitor.marks, receptionist: receptionist.marks, TOUR_LEN } }
 
     const KEYS: Record<string, keyof typeof input> = { KeyW: 'f', ArrowUp: 'f', KeyS: 'b', ArrowDown: 'b', KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r', ShiftLeft: 'run', ShiftRight: 'run' }
     const typing = (e: KeyboardEvent) => ['SELECT', 'INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)
@@ -63,6 +65,12 @@ export default function Experience() {
         e.preventDefault()
         if (st.talking) st.choose(0)
         else if (st.nearby) st.startTalk(st.nearby)
+        else if (soccer.active) soccer.kickRequest = true
+        return
+      }
+      if (e.code === 'Space' && !st.talking && soccer.active) {
+        e.preventDefault()
+        soccer.kickRequest = true
         return
       }
       if (st.talking) {

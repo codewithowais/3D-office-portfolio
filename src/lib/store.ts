@@ -5,6 +5,10 @@ import type { ThemeName } from './themes'
 import { getDevice } from './device'
 import { NPCS } from './dialogue'
 import { readName, readSkipped, saveName, saveSkipped } from './profile'
+import { clock as worldClock } from './clock'
+import { resetEscort, startEscort } from './escort'
+import { stopSoccer } from './soccer'
+import { spotOf } from './talkables'
 import { input, player, resetPlayer, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
@@ -31,6 +35,8 @@ interface State {
   nameAsked: boolean
   /** person within talking distance (walk mode) */
   nearby: string | null
+  /** the ball is within kicking range (football) */
+  nearBall: boolean
   /** the conversation in progress */
   talking: { id: string; node: string } | null
   /** true once the user picked a quality themselves: auto-downgrade then stays out of the way */
@@ -60,6 +66,7 @@ interface State {
   startWalk: () => void
   stopWalk: () => void
   setNearby: (id: string | null) => void
+  setNearBall: (v: boolean) => void
   setPlayerName: (name: string) => void
   skipName: () => void
   openNamePrompt: () => void
@@ -89,6 +96,7 @@ export const useStore = create<State>((set, get) => ({
   askName: false,
   nameAsked: !!readName() || readSkipped(),
   nearby: null,
+  nearBall: false,
   talking: null,
   chapter: 0,
   activeRoom: null,
@@ -121,6 +129,8 @@ export const useStore = create<State>((set, get) => ({
     set({ mode: 'explore', walk: false, talking: null, nearby: null, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
   startDemo: () => {
     clock.t = 0
+    stopSoccer()
+    resetEscort()
     set({ mode: 'demo', walk: false, talking: null, nearby: null, paused: false, chapter: 0, activeRoom: null, flight: null })
   },
   startWalk: () => {
@@ -139,9 +149,12 @@ export const useStore = create<State>((set, get) => ({
   stopWalk: () => {
     player.visible = false
     player.speed = 0
-    set({ walk: false, nearby: null, talking: null })
+    stopSoccer()
+    resetEscort()
+    set({ walk: false, nearby: null, nearBall: false, talking: null })
   },
   setNearby: (nearby) => set({ nearby }),
+  setNearBall: (nearBall) => set({ nearBall }),
   setPlayerName: (name) => {
     const clean = name.replace(/\s+/g, ' ').trim().slice(0, 24)
     if (clean) saveName(clean)
@@ -172,6 +185,12 @@ export const useStore = create<State>((set, get) => ({
       return
     }
     if (opt.action === 'askName') return set({ askName: true, talking: null })
+    if (opt.action === 'escort') {
+      // Priya starts the guided tour from wherever she is standing right now
+      const sp = spotOf('receptionist', worldClock.t)
+      startEscort({ x: sp ? sp.x : -8, z: sp ? sp.z : 7.2 })
+      return set({ talking: null })
+    }
     if (opt.teleport) {
       teleport(opt.teleport[0], opt.teleport[1])
       return set({ talking: null })
