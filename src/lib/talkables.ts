@@ -27,12 +27,12 @@ export interface Talkable {
 
 export const TALK_RANGE = 2.7
 
-function actor(id: string, a: { sample: (t: number) => { x: number; z: number; visible: boolean } }, marker = 2.35): Talkable {
+function actor(id: string, a: { sample: (t: number) => { x: number; z: number; visible: boolean } }, marker = 2.35, range = TALK_RANGE): Talkable {
   return {
     id,
     kind: 'person',
     marker,
-    range: TALK_RANGE,
+    range,
     at(t, out) {
       const s = a.sample(t % TOUR_LEN)
       out.x = s.x
@@ -66,7 +66,7 @@ const chair = (id: string, label: string, seat: SeatSpec, marker = 1.2) =>
 /** Everything you can interact with in walk mode: people, objects and seats. */
 export const TALKABLES: Talkable[] = [
   /* ---- people ---- */
-  actor('receptionist', { sample: receptionistSample }),
+  actor('receptionist', { sample: receptionistSample }, 2.35, 4.4), // reach her round the end of the counter
   actor('guard', guard),
   actor('visitor', visitor),
   actor('boss', boss, 2.0),

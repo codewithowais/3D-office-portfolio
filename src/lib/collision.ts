@@ -94,3 +94,28 @@ export function resolve(p: { x: number; z: number }, r: number) {
   p.x = Math.min(Math.max(p.x, BOUNDS.x0), BOUNDS.x1)
   p.z = Math.min(Math.max(p.z, BOUNDS.z0), BOUNDS.z1)
 }
+
+/** True when no obstacle (desk, counter, wall) sits on the straight line between two points. */
+export function clearLine(ax: number, az: number, bx: number, bz: number) {
+  const dx = bx - ax
+  const dz = bz - az
+  for (const o of obstacles) {
+    let t0 = 0
+    let t1 = 1
+    let hit = true
+    for (const [p, d, lo, hi] of [[ax, dx, o.x0, o.x1], [az, dz, o.z0, o.z1]] as const) {
+      if (Math.abs(d) < 1e-9) {
+        if (p < lo || p > hi) hit = false
+      } else {
+        const a = (lo - p) / d
+        const b = (hi - p) / d
+        t0 = Math.max(t0, Math.min(a, b))
+        t1 = Math.min(t1, Math.max(a, b))
+        if (t0 > t1) hit = false
+      }
+      if (!hit) break
+    }
+    if (hit) return false
+  }
+  return true
+}

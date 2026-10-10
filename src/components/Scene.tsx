@@ -1,4 +1,5 @@
 'use client'
+import { clearLine } from '@/lib/collision'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
@@ -137,7 +138,7 @@ function Director() {
             const sp = tk.at(clock.t, nearScratch)
             if (!sp.visible) continue
             const r = Math.hypot(sp.x - player.x, sp.z - player.z) / tk.range
-            if (r < bd) {
+            if (r < bd && (tk.kind !== 'person' || clearLine(player.x, player.z, sp.x, sp.z))) {
               bd = r
               best = tk.id
             }
