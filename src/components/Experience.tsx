@@ -1,13 +1,51 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { receptionist, TOUR_LEN, visitor } from '@/lib/actors'
 import { clock } from '@/lib/clock'
+import { getDevice } from '@/lib/device'
 import { input, player } from '@/lib/player'
 import { useStore } from '@/lib/store'
+import { ErrorBoundary, Fallback } from './ErrorBoundary'
 import Overlay from './Overlay'
 import Scene from './Scene'
 
 export default function Experience() {
+  // Mount the heavy 3D scene only after the loading screen has had a chance to paint,
+  // so the page never looks frozen while shaders compile.
+  const [mount, setMount] = useState(false)
+  const [supported] = useState(() => getDevice().webgl2)
+  const sceneKey = useStore((s) => s.sceneKey)
+  const error = useStore((s) => s.error)
+
+  useEffect(() => {
+    let a = 0
+    let b = 0
+    a = requestAnimationFrame(() => {
+      b = requestAnimationFrame(() => setMount(true))
+    })
+    return () => {
+      cancelAnimationFrame(a)
+      cancelAnimationFrame(b)
+    }
+  }, [])
+
+  // While the GPU is gone, keep checking whether a fresh context can be created, then rebuild the scene.
+  useEffect(() => {
+    if (error !== 'lost') return
+    const id = window.setInterval(() => {
+      try {
+        const gl = document.createElement('canvas').getContext('webgl2')
+        if (gl && !gl.isContextLost()) {
+          gl.getExtension('WEBGL_lose_context')?.loseContext()
+          useStore.getState().restoreScene()
+        }
+      } catch {
+        /* still unavailable */
+      }
+    }, 1500)
+    return () => window.clearInterval(id)
+  }, [error])
+
   useEffect(() => {
     // Deep link into the tour, e.g. /?t=60. Also handy for debugging in dev.
     const t = Number(new URLSearchParams(window.location.search).get('t'))
@@ -34,15 +72,21 @@ export default function Experience() {
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
     window.addEventListener('blur', clear)
+    document.addEventListener('visibilitychange', clear)
     return () => {
       window.removeEventListener('keydown', down)
       window.removeEventListener('keyup', up)
       window.removeEventListener('blur', clear)
+      document.removeEventListener('visibilitychange', clear)
     }
   }, [])
+
+  if (!supported) {
+    return <Fallback title="3D isn't available here" detail="This browser or device doesn't support WebGL 2, which the 3D office needs. Try an up-to-date Chrome, Edge, Firefox or Safari." />
+  }
   return (
     <div className="fixed inset-0 bg-[#dcecf4]">
-      <Scene />
+      <ErrorBoundary key={sceneKey}>{mount && <Scene />}</ErrorBoundary>
       <Overlay />
     </div>
   )
