@@ -41,7 +41,10 @@ function Director() {
   useFrame(({ camera }, delta) => {
     const dt = Math.min(delta, 0.05)
     const st = useStore.getState()
-    if (!st.ready) st.setReady()
+    if (!st.ready) {
+      st.setReady()
+      performance.mark('office-ready')
+    }
     if (!st.walk) last.current.init = false
 
     if (st.mode === 'demo') {
