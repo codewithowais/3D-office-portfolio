@@ -9,7 +9,7 @@ import { action, input, player, seat, stepPlayer } from '@/lib/player'
 import { fill } from '@/lib/dialogue'
 import { escort, updateEscort } from '@/lib/escort'
 import { inPitch, soccer, startSoccer, updateSoccer } from '@/lib/soccer'
-import { TALKABLES, TALK_RANGE, spotOf, talkable } from '@/lib/talkables'
+import { TALKABLES, spotOf } from '@/lib/talkables'
 import { zoneAt } from '@/lib/zones'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
@@ -86,7 +86,8 @@ function Director() {
       look.current.z += (cam.t[2] - look.current.z) * k
       camera.lookAt(look.current)
     } else {
-      clock.t += dt
+      // the world holds still while you talk, so whoever you're talking to doesn't wander off
+      if (!(st.walk && st.talking)) clock.t += dt
       const f = flight.current
       const c = controls.current
       if (f && c) {
@@ -112,14 +113,11 @@ function Director() {
           l.init = true
         }
         if (st.talking) {
-          // stand still and face whoever (or whatever) you're talking to; walk away and the conversation ends
+          // stay and keep talking until you choose to leave: say goodbye, press Esc, or start walking away
           player.speed = 0
           const sp = spotOf(st.talking.id, clock.t)
-          if (sp) {
-            player.heading = Math.atan2(sp.x - player.x, sp.z - player.z)
-            const reach = (talkable(st.talking.id)?.range ?? TALK_RANGE) * 2.2
-            if (Math.hypot(sp.x - player.x, sp.z - player.z) > reach) st.endTalk()
-          }
+          if (sp) player.heading = Math.atan2(sp.x - player.x, sp.z - player.z)
+          if (input.f || input.b || input.l || input.r) st.endTalk()
         } else if (seat.active) {
           // seated: any movement key stands you up
           player.speed = 0
@@ -146,6 +144,17 @@ function Director() {
           }
           if (best !== st.nearby) st.setNearby(best)
         }
+        // welcome you when you first come close to someone
+        if (!st.talking && !seat.active) {
+          for (const tk of TALKABLES) {
+            if (tk.kind !== 'person' || st.greeted.includes(tk.id)) continue
+            const sp = tk.at(clock.t, nearScratch)
+            if (sp.visible && Math.hypot(sp.x - player.x, sp.z - player.z) < 5.5) {
+              st.greet(tk.id)
+              break
+            }
+          }
+        }
         // entering a new place shows its banner and counts towards your discoveries
         const zn = zoneAt(player.x, player.z)
         const zid = zn ? zn.id : null
@@ -154,19 +163,21 @@ function Director() {
           if (zn) st.enterZone(zn)
         }
         // Ayesha's guided tour, and the football match once you step onto the pitch
-        updateEscort(dt, player)
+        if (!st.talking) updateEscort(dt, player)
         if (escort.say) {
           st.setNotice(`Ayesha: ${fill(escort.say, st.playerName)}`)
           escort.say = ''
         }
         if (!soccer.active && inPitch(player.x, player.z)) {
           startSoccer(clock.t)
+          st.setPlaying(true, { ...soccer.score })
           st.setNotice("You're playing for red. Score in the left goal! Run into the ball, press E to kick.")
         }
         if (soccer.active) {
-          updateSoccer(dt, clock.t, player)
+          if (!st.talking) updateSoccer(dt, clock.t, player)
           if (soccer.announce) {
             st.setNotice(soccer.announce)
+            st.setPlaying(true, { ...soccer.score })
             soccer.announce = ''
           }
           if (soccer.nearBall !== st.nearBall) st.setNearBall(soccer.nearBall)
@@ -236,27 +247,37 @@ let liveCanvas: HTMLCanvasElement | null = null
 let lastRestore = 0
 
 function AutoQuality() {
-  const acc = useRef({ time: 0, frames: 0, warm: 0, strikes: 0 })
+  const acc = useRef({ time: 0, frames: 0, warm: 0, strikes: 0, slow: 0, slowTime: 0 })
   useFrame((_, delta) => {
     const a = acc.current
     const st = useStore.getState()
-    if (!st.ready || document.hidden || delta > 0.5) {
+    if (!st.ready || document.hidden || delta > 0.6) {
       a.time = 0
       a.frames = 0
       return
     }
     a.warm += delta
-    if (a.warm < 4) return // first seconds include shader compilation
+    if (a.warm < 2.5) return // the first moments include shader compilation
+    // hitchy frames: several long frames in a short window means this machine is struggling right now
+    a.slowTime += delta
+    if (delta > 0.09) a.slow++
+    if (a.slowTime > 2) {
+      a.slowTime = 0
+      a.slow = 0
+    }
     a.time += delta
     a.frames++
-    if (a.time < 2.5) return
+    if (a.time < 1.5 && a.slow < 4) return
     const fps = a.frames / a.time
     a.time = 0
     a.frames = 0
-    a.strikes = fps < 27 ? a.strikes + 1 : 0
+    // 24 fps, not 30: laptops in power-saving mode are often capped at 30 and are still fine
+    const struggling = fps < 24 || a.slow >= 4
+    a.slow = 0
+    a.strikes = struggling ? a.strikes + 1 : 0
     if (a.strikes >= 2) {
       a.strikes = 0
-      a.warm = 0 // give the new settings a moment before judging again
+      a.warm = 1 // give the new settings a moment before judging again
       st.autoDowngrade()
     }
   })

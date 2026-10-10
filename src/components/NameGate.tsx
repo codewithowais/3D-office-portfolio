@@ -26,7 +26,7 @@ export default function NameGate() {
 
   if (!open) return null
   return (
-    <div className="pointer-events-auto absolute inset-0 z-20 grid place-items-center bg-black/25 p-4 backdrop-blur-[2px]">
+    <div className="pointer-events-auto absolute inset-0 z-20 grid place-items-center bg-black/30 p-4">
       <form
         role="dialog"
         aria-modal="true"

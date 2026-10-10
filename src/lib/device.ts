@@ -41,7 +41,11 @@ export function getDevice(): Device {
   const software = /swiftshader|llvmpipe|software|basic render|microsoft basic/i.test(renderer)
   const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8
   const cores = navigator.hardwareConcurrency ?? 4
-  const tier: Tier = software || mem <= 2 || cores <= 2 || maxTexture < 4096 ? 'low' : mobile || mem <= 4 || cores <= 4 ? 'medium' : 'high'
+  // integrated / mobile GPUs struggle with the heavy post-processing, so they start a notch lower
+  const weakGpu = /intel(?!.*\barc\b)|mali|adreno|powervr|videocore|apple gpu(?!.*m\d)|llvmpipe|swiftshader/i.test(renderer) && !/apple m\d/i.test(renderer)
+  const veryWeakGpu = /hd graphics|uhd graphics 6|mali-[gt]?[0-5]\d\d|adreno \(?[1-5]\d\d/i.test(renderer)
+  const tier: Tier =
+    software || mem <= 2 || cores <= 2 || maxTexture < 4096 || veryWeakGpu ? 'low' : mobile || weakGpu || mem <= 4 || cores <= 4 ? 'medium' : 'high'
   const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
   cached = { webgl2, mobile, tier, reducedMotion, maxTexture, renderer }
@@ -50,7 +54,7 @@ export function getDevice(): Device {
 
 /** Largest pixel ratio that keeps the framebuffer inside a per-quality pixel budget. */
 export function dprFor(quality: 'Low' | 'Medium' | 'High', width: number, height: number, scale = 1): number {
-  const budget = quality === 'High' ? 4.6e6 : quality === 'Medium' ? 2.8e6 : 1.5e6
+  const budget = quality === 'High' ? 3.4e6 : quality === 'Medium' ? 2.0e6 : 1.2e6
   const maxRatio = quality === 'High' ? 2 : quality === 'Medium' ? 1.5 : 1
   const fit = Math.sqrt(budget / Math.max(1, width * height))
   return Math.max(0.5, Math.min(maxRatio, fit, window.devicePixelRatio || 1) * scale)
