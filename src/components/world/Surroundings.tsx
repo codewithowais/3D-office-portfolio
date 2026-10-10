@@ -26,15 +26,14 @@ function Railing({ a, b }: { a: [number, number]; b: [number, number] }) {
   const P = (v: number, y: number): V3 => (horiz ? [v, y, fixed] : [fixed, y, v])
   const S = (along: number, y: number, th: number): V3 => (horiz ? [along, y, th] : [th, y, along])
   const n = Math.floor(L / 1.1)
+  const posts = useMemo(() => Array.from({ length: n + 1 }, (_, i) => ({ p: P(s0 + (L * i) / n, 1.12), s: S(0.05, 1.0, 0.05) })), [n, s0, L]) // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <group>
       <Box p={P(c, 0.32)} s={S(L, 0.64, 0.4)} c={C.cream} />
       <Box p={P(c, 0.68)} s={S(L, 0.07, 0.5)} c="#b9c3cb" />
       <Box p={P(c, 1.05)} s={S(L, 0.06, 0.06)} c={C.greenDark} />
       <Box p={P(c, 1.55)} s={S(L, 0.06, 0.06)} c={C.greenDark} />
-      {Array.from({ length: n + 1 }, (_, i) => (
-        <Box key={i} p={P(s0 + (L * i) / n, 1.12)} s={S(0.05, 1.0, 0.05)} c={C.greenDark} cast={false} />
-      ))}
+      <Instanced geometry={BOX} material={mat(C.greenDark)} items={posts} />
     </group>
   )
 }
@@ -93,15 +92,14 @@ function Garden() {
     return out
   }, [])
   const m = mat('#3f9e4d')
+  const shrubItems = useMemo(() => shrubs.map((p, i) => ({ p, s: [0.62, 0.45 + (i % 3) * 0.05, 0.62] as V3 })), [shrubs])
   const flowers = useMemo(() => shrubs.map((p, i) => ({ p: [p[0] + ((i * 7) % 5) * 0.12 - 0.25, 0.62 + (i % 3) * 0.04, p[2] + ((i * 3) % 4) * 0.1 - 0.15] as V3, s: [0.11, 0.11, 0.11] as V3 })), [shrubs])
   return (
     <group>
       <Floor x0={-24} x1={24} z0={-18} z1={18} y={0.008} m={M.grass} />
       <Floor x0={-1.7} x1={1.7} z0={14} z1={18.2} y={0.015} c="#c6ced4" />
       <Floor x0={-24} x1={24} z0={-18} z1={-16.5} y={0.012} m={M.grassDark} />
-      {shrubs.map((p, i) => (
-        <mesh key={i} position={p} scale={[0.62, 0.45 + (i % 3) * 0.05, 0.62]} castShadow geometry={SPH} material={m} />
-      ))}
+      <Instanced geometry={SPH} material={m} items={shrubItems} cast />
       <Instanced geometry={SPH} material={mat('#ffffff', { rough: 0.6 })} items={flowers} colors={['#ff6f59', '#ffc233', '#ff8fc0', '#ffffff', '#9b6fd1']} />
       <Tree p={[-21, 0, -13]} s={1.2} />
       <Tree p={[21.5, 0, -12]} s={1.1} />

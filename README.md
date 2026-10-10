@@ -40,3 +40,7 @@ npm run build && npm start
 | UI overlay | `src/components/Overlay.tsx` |
 
 Everything animated is a pure function of one clock (`src/lib/clock.ts`), so pausing freezes the whole world.
+
+## Performance
+
+Repeated static props (railing posts, shrubs) are instanced, and seated staff stop animating while far from the camera. `performance.mark` entries `office-ready` and `office-first-frame` are written for load measurement.
