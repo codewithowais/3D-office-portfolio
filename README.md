@@ -44,4 +44,14 @@ Everything animated is a pure function of one clock (`src/lib/clock.ts`), so pau
 
 ## Performance
 
-Repeated static props (railing posts, shrubs) are instanced, and seated staff stop animating while far from the camera. `performance.mark` entries `office-ready` and `office-first-frame` are written for load measurement.
+Draw calls and shadow casters are the main cost, so the scene is built to keep both low:
+
+- **People** are 7 merged, vertex-coloured meshes each (body, arms, thighs, shins) instead of ~25, and anyone more than ~40 m from the camera is drawn as a single static mesh with no animation (`PersonRig.ts`).
+- **Static furniture and props** under the office and surroundings are merged into one mesh per material after mounting (`StaticMerge.tsx`). Anything animated is marked `userData.dynamic` and left alone.
+- **Repeated props** (trees, railings, shrubs, road markings, lamps) are instanced.
+- **Shadows**: only objects bigger than ~0.6 m cast them, and the shadow map refreshes every other frame.
+- **Adaptive quality**: the device is probed at start-up and a frame-rate watchdog steps quality down on slow machines.
+
+Measured on an M2 Pro at 1280x800, High quality (mean frame cost): 11-20 ms before, 4.6-6.6 ms after, across the tour, aerial, city and Night views, with visible meshes dropping from ~2,800 to ~920 and shadow casters from ~1,730 to ~545.
+
+`performance.mark` entries `office-ready` and `office-first-frame` are written for load measurement.

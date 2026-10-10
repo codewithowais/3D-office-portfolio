@@ -90,9 +90,11 @@ interface BoxProps {
   receive?: boolean
 }
 
-export function Box({ p, s, c = '#ffffff', m, r = 0, cast = true, receive = true }: BoxProps) {
+export function Box({ p, s, c = '#ffffff', m, r = 0, cast, receive = true }: BoxProps) {
+  // only big pieces cast shadows: mugs, monitors and book spines add shadow-pass cost for nothing
+  const casts = cast ?? Math.max(s[0], s[1], s[2]) > 0.6
   return (
-    <mesh position={p} rotation={[0, r, 0]} scale={s} castShadow={cast} receiveShadow={receive} geometry={BOX} material={m ?? mat(c)} />
+    <mesh position={p} rotation={[0, r, 0]} scale={s} castShadow={casts} receiveShadow={receive} geometry={BOX} material={m ?? mat(c)} />
   )
 }
 
@@ -181,6 +183,7 @@ export function rbox(w: number, h: number, d: number, r = 0.04) {
 }
 
 /** Box with softly rounded edges: catches light much better than a hard cube. */
-export function RBox({ p, s, c = '#ffffff', m, r = 0, rad = 0.04, cast = true, receive = true }: { p: V3; s: V3; c?: string; m?: THREE.Material; r?: number; rad?: number; cast?: boolean; receive?: boolean }) {
-  return <mesh position={p} rotation={[0, r, 0]} castShadow={cast} receiveShadow={receive} geometry={rbox(s[0], s[1], s[2], rad)} material={m ?? mat(c)} />
+export function RBox({ p, s, c = '#ffffff', m, r = 0, rad = 0.04, cast, receive = true }: { p: V3; s: V3; c?: string; m?: THREE.Material; r?: number; rad?: number; cast?: boolean; receive?: boolean }) {
+  const casts = cast ?? Math.max(s[0], s[1], s[2]) > 0.6
+  return <mesh position={p} rotation={[0, r, 0]} castShadow={casts} receiveShadow={receive} geometry={rbox(s[0], s[1], s[2], rad)} material={m ?? mat(c)} />
 }

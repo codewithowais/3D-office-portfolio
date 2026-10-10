@@ -42,7 +42,11 @@ function Director() {
     }
   }, [mode])
 
-  useFrame(({ camera }, delta) => {
+  const frame = useRef(0)
+  useFrame(({ camera, gl }, delta) => {
+    // shadows are re-rendered every other frame: half the shadow-pass cost, invisible at 60 fps
+    gl.shadowMap.autoUpdate = false
+    gl.shadowMap.needsUpdate = (frame.current++ & 1) === 0
     const dt = Math.min(delta, 0.05)
     const st = useStore.getState()
     if (!st.ready) {
