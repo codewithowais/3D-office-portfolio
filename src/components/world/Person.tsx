@@ -13,6 +13,7 @@ export interface Look {
   pants: string
   skin?: string
   hair?: string
+  female?: boolean
 }
 
 export const SKINS = ['#e0b08c', '#c68e69', '#8d5a3b', '#f0c9a4', '#a87250']
@@ -39,7 +40,7 @@ const SPRAY = Array.from({ length: 9 }, (_, i) => i)
  * Poses: walk/run (from speed), sit, type, water, wave, talk/listen (standing or seated). Everything is driven by the world clock,
  * so pausing the tour freezes the animation too.
  */
-export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop, still, sprays }: Props) {
+export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', female = false, scale = 1, loop, still, sprays }: Props) {
   const root = useRef<THREE.Group>(null)
   const hips = useRef<THREE.Group>(null)
   const lodMesh = useRef<THREE.Mesh>(null)
@@ -52,7 +53,7 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
   const spray = useRef<THREE.Group>(null)
   const st = useRef({ lastT: -1, heading: 0, phase: [...shirt].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 6, sit: 0, init: false, far: false, farSeated: false })
 
-  const rig = useMemo(() => getRig(shirt, pants, skin, hair), [shirt, pants, skin, hair])
+  const rig = useMemo(() => getRig(shirt, pants, skin, hair, female), [shirt, pants, skin, hair, female])
   const water = useMemo(() => mat('#bfe6f2', { opacity: 0.8 }), [])
 
   useFrame(({ camera }) => {
@@ -248,5 +249,6 @@ export function look(i: number, shirts: string[], pants: string[]): Look {
     pants: pants[(i * 3 + 1) % pants.length],
     skin: SKINS[(i * 7 + 2) % SKINS.length],
     hair: HAIRS[(i * 5 + 1) % HAIRS.length],
+    female: (i * 3 + 1) % 2 === 1,
   }
 }

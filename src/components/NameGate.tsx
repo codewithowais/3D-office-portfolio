@@ -13,6 +13,8 @@ export default function NameGate() {
   const skipName = useStore((s) => s.skipName)
   const color = useStore((s) => s.playerColor)
   const setPlayerColor = useStore((s) => s.setPlayerColor)
+  const female = useStore((s) => s.playerFemale)
+  const setFemale = useStore((s) => s.setPlayerFemale)
   const [value, setValue] = useState(current)
   const ref = useRef<HTMLInputElement>(null)
 
@@ -55,7 +57,14 @@ export default function NameGate() {
           aria-label="Your name"
           className="ui-focus mt-5 w-full rounded-xl border border-[var(--ui-border-inner)] bg-[var(--ui-surface-strong)] px-4 py-3 text-center text-[16px] text-[var(--ui-text)] outline-none placeholder:text-[var(--ui-faint)]"
         />
-        <p className="mt-5 text-[12px] text-[var(--ui-muted)]">Pick your shirt colour</p>
+        <div className="mt-4 flex justify-center gap-2" role="radiogroup" aria-label="Character">
+          {([['Boy', false], ['Girl', true]] as const).map(([label, f]) => (
+            <button key={label} type="button" role="radio" aria-checked={female === f} onClick={() => setFemale(f)} className={`ui-focus cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-semibold ${female === f ? 'bg-[var(--ui-accent)] text-white' : 'ui-btn'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="mt-4 text-[12px] text-[var(--ui-muted)]">Pick your shirt colour</p>
         <div className="mt-2 flex justify-center gap-2" role="radiogroup" aria-label="Shirt colour">
           {SHIRTS.map((c) => (
             <button

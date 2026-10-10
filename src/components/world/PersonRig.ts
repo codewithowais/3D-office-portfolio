@@ -59,18 +59,28 @@ const cache = new Map<string, Rig>()
 const EYE = '#1a1512'
 const SHOE_C = '#2a2622'
 
-export function getRig(shirt: string, pants: string, skin: string, hair: string): Rig {
-  const key = `${shirt}|${pants}|${skin}|${hair}`
+export function getRig(shirt: string, pants: string, skin: string, hair: string, female = false): Rig {
+  const key = `${shirt}|${pants}|${skin}|${hair}|${female ? 'f' : 'm'}`
   const hit = cache.get(key)
   if (hit) return hit
 
   // joint-local parts (the same numbers the animated rig always used)
   const body = merge([
-    paint(TORSO, xf([0, 0.31, 0], [1, 0.62 / 0.6, 1]), shirt),
+    // women: narrower shoulders and waist, a skirt over the hips, a bun-less long hairstyle; men: broader chest, short hair
+    paint(TORSO, xf([0, 0.31, 0], female ? [0.86, 0.62 / 0.6, 0.9] : [1.04, 0.62 / 0.6, 1.02]), shirt),
     paint(CAP, xf([0, 0.03, 0], [0.46, 0.12, 0.26], [0, 0, Math.PI / 2]), pants),
+    ...(female
+      ? [
+          paint(CAP, xf([0, -0.12, 0], [0.5, 0.2, 0.34], [0, 0, Math.PI / 2]), pants),
+          paint(SPH, xf([0, 0.74, -0.075], [0.18, 0.26, 0.14]), hair),
+          paint(SPH, xf([-0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
+          paint(SPH, xf([0.15, 0.78, 0.0], [0.05, 0.14, 0.09]), hair),
+          paint(SPH, xf([-0.055, 0.84, 0.128], [0.03, 0.008, 0.02]), '#c45a62'),
+        ]
+      : []),
     paint(CAP, xf([0, 0.66, 0], [0.09, 0.07, 0.09]), skin),
     paint(SPH, xf([0, 0.8, 0], [0.155, 0.17, 0.16]), skin),
-    paint(SPH, xf([0, 0.855, -0.015], [0.17, 0.135, 0.175]), hair),
+    paint(SPH, xf([0, 0.855, -0.015], female ? [0.175, 0.14, 0.18] : [0.165, 0.12, 0.17]), hair),
     paint(SPH, xf([-0.055, 0.81, 0.138], 0.017), EYE),
     paint(SPH, xf([0.055, 0.81, 0.138], 0.017), EYE),
   ])

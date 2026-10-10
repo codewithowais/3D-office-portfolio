@@ -46,6 +46,9 @@ export const DEFAULT_COLOR = '#ff6f59'
 export const readColor = () => get('office:color') || DEFAULT_COLOR
 export const saveColor = (c: string) => set('office:color', c)
 
+export const readFemale = () => get('office:female') === '1'
+export const saveFemale = (f: boolean) => set('office:female', f ? '1' : '0')
+
 export const readSpeed = (): number => {
   const n = Number(get('office:speed'))
   return n === 1 || n === 2 ? n : 0

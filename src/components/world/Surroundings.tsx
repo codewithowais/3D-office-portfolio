@@ -239,6 +239,7 @@ function PlayerAvatar() {
   const ring = useRef<THREE.Mesh>(null)
   const sample = useMemo(() => () => player, [])
   const color = useStore((s) => s.playerColor)
+  const female = useStore((s) => s.playerFemale)
   useFrame(() => {
     const r = ring.current
     if (!r) return
@@ -248,7 +249,7 @@ function PlayerAvatar() {
   })
   return (
     <>
-      <Person sample={sample} sprays shirt={color} pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
+      <Person sample={sample} sprays shirt={color} pants="#14324b" skin="#d9a77f" hair="#2a1d14" female={female} />
       <mesh ref={ring} userData={{ dynamic: true }} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
         <ringGeometry args={[0.62, 0.78, 40]} />
         <meshBasicMaterial color="#17e0d6" transparent opacity={0.9} depthWrite={false} toneMapped={false} />

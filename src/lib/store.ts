@@ -4,7 +4,7 @@ import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
 import { NPCS, fill } from './dialogue'
-import { readColor, readName, readSpeed, saveSpeed, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
+import { readColor, readFemale, saveFemale, readName, readSpeed, saveSpeed, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
 import { clock as worldClock } from './clock'
 import { escort, resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
@@ -75,6 +75,8 @@ interface State {
   place: Place | null
   progress: Progress
   playerColor: string
+  playerFemale: boolean
+  setPlayerFemale: (f: boolean) => void
   /** 0 walk, 1 run, 2 sprint */
   speedLevel: number
   /** the conversation in progress */
@@ -161,6 +163,11 @@ export const useStore = create<State>((set, get) => ({
   place: null,
   progress: readProgress(),
   playerColor: readColor(),
+  playerFemale: readFemale(),
+  setPlayerFemale: (playerFemale) => {
+    saveFemale(playerFemale)
+    set({ playerFemale })
+  },
   speedLevel: initSpeed(),
   talking: null,
   chapter: 0,

@@ -106,8 +106,8 @@ export function Chat() {
       <GreetBubble />
       {PAIRS.map((p, i) => (
         <group key={p.id}>
-          <Person sample={samplers[i][0]} shirt={p.a.shirt} pants={p.a.pants} skin={p.a.skin} hair={p.a.hair} />
-          <Person sample={samplers[i][1]} shirt={p.b.shirt} pants={p.b.pants} skin={p.b.skin} hair={p.b.hair} />
+          <Person sample={samplers[i][0]} shirt={p.a.shirt} pants={p.a.pants} skin={p.a.skin} hair={p.a.hair} female={p.a.female} />
+          <Person sample={samplers[i][1]} shirt={p.b.shirt} pants={p.b.pants} skin={p.b.skin} hair={p.b.hair} female={p.b.female} />
           <sprite ref={(el) => void (sprites.current[i] = el)} visible={false} renderOrder={5} />
         </group>
       ))}

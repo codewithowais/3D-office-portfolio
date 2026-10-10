@@ -313,7 +313,7 @@ export function Office() {
       <BossDoor />
 
       {/* people with their own scripts */}
-      <Person sample={reception} loop={TOUR_LEN} {...{ shirt: '#26302c', pants: '#1c1f1e', skin: '#e0b08c', hair: '#1c1714' }} />
+      <Person sample={reception} loop={TOUR_LEN} {...{ shirt: '#26302c', pants: '#1c1f1e', skin: '#e0b08c', hair: '#1c1714', female: true }} />
       <Person sample={bossS} {...{ shirt: '#3a3f45', pants: '#23262a', skin: '#c68e69', hair: '#2a2a2a' }} scale={1.03} />
     </StaticMerge>
   )

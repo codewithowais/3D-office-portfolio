@@ -3,8 +3,8 @@ import type { Pose, Sample } from './actor'
 /** Two people holding a conversation: they face each other, take turns gesturing, and show a speech bubble. */
 export interface Pair {
   id: string
-  a: { x: number; z: number; shirt: string; pants: string; skin: string; hair: string }
-  b: { x: number; z: number; shirt: string; pants: string; skin: string; hair: string }
+  a: { x: number; z: number; shirt: string; pants: string; skin: string; hair: string; female?: boolean }
+  b: { x: number; z: number; shirt: string; pants: string; skin: string; hair: string; female?: boolean }
   seated?: boolean
   /** alternating lines: even = a, odd = b */
   lines: string[]
@@ -15,26 +15,26 @@ const TURN = 3.4
 export const PAIRS: Pair[] = [
   {
     id: 'lounge',
-    a: { x: 13.4, z: 5.7, shirt: '#ff8fc0', pants: '#26324a', skin: '#e0b08c', hair: '#1c1714' },
+    a: { x: 13.4, z: 5.7, shirt: '#ff8fc0', pants: '#26324a', skin: '#e0b08c', hair: '#1c1714', female: true },
     b: { x: 15.0, z: 5.7, shirt: '#2f80d0', pants: '#3a3f45', skin: '#8d5a3b', hair: '#12100f' },
     lines: ['Did you see the new release?', "Yes! It's so fast now.", 'Coffee after stand-up?', 'Always.', 'Owais says ship it Friday.', 'Then we ship it Friday!'],
   },
   {
     id: 'corridor',
     a: { x: -2.3, z: 2.6, shirt: '#ffc233', pants: '#222426', skin: '#c68e69', hair: '#1c1714' },
-    b: { x: -2.3, z: 4.0, shirt: '#4cc2a0', pants: '#4a4036', skin: '#f0c9a4', hair: '#5a3d27' },
+    b: { x: -2.3, z: 4.0, shirt: '#4cc2a0', pants: '#4a4036', skin: '#f0c9a4', hair: '#5a3d27', female: true },
     lines: ['Is the design review at three?', 'Yes, in the meeting room.', 'Did Zain finish the night theme?', "It's glowing. Wait till you see it.", 'Lovely. Walk over together?', 'Sure!'],
   },
   {
     id: 'sidewalk',
     a: { x: -30, z: 22, shirt: '#e8584a', pants: '#2b2f33', skin: '#e0b08c', hair: '#3a2a1e' },
-    b: { x: -28.5, z: 22, shirt: '#9b6fd1', pants: '#59616b', skin: '#a87250', hair: '#12100f' },
+    b: { x: -28.5, z: 22, shirt: '#9b6fd1', pants: '#59616b', skin: '#a87250', hair: '#12100f', female: true },
     lines: ['Lovely weather today!', 'Perfect for a walk.', 'Have you been inside the office?', 'Not yet. Ayesha gives a great tour.', 'Then let us go in!', 'After this coffee.'],
   },
   {
     id: 'pitch',
     a: { x: -41, z: -16.9, shirt: '#14324b', pants: '#2b2f33', skin: '#c68e69', hair: '#1c1714' },
-    b: { x: -39.5, z: -16.9, shirt: '#d9568f', pants: '#3a4a5a', skin: '#e0b08c', hair: '#12100f' },
+    b: { x: -39.5, z: -16.9, shirt: '#d9568f', pants: '#3a4a5a', skin: '#e0b08c', hair: '#12100f', female: true },
     lines: ['Blue is playing well today.', 'Red could use another player.', 'Go on, join them!', 'Run at the ball and press E to kick.', 'You can do it!', 'Score on the left goal!'],
   },
   {
