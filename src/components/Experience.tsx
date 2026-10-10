@@ -80,7 +80,13 @@ export default function Experience() {
       }
       if (st.talking) {
         const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)
-        if (m) st.choose(Number(m[1]) - 1)
+        if (m) return st.choose(Number(m[1]) - 1)
+        // walking away is how you leave a conversation
+        if (KEYS[e.code] && e.code !== 'ShiftLeft' && e.code !== 'ShiftRight') {
+          st.endTalk()
+          input[KEYS[e.code]] = true
+          e.preventDefault()
+        }
         return
       }
       const k = KEYS[e.code]

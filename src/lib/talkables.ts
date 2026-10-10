@@ -1,4 +1,4 @@
-import { boss, guard, TOUR_LEN, visitor } from './actors'
+import { boss, car, guard, TOUR_LEN, visitor } from './actors'
 import { receptionistSample } from './escort'
 import type { SeatSpec } from './player'
 
@@ -20,7 +20,7 @@ export interface Talkable {
   /** button text for things and seats ("Use the computer"); people show "Talk to <name>" */
   label?: string
   /** something you DO instead of opening a conversation */
-  action?: 'sit' | 'coffee' | 'bell' | 'water'
+  action?: 'sit' | 'coffee' | 'bell' | 'water' | 'guestbook' | 'honk'
   seat?: SeatSpec
   at: (t: number, out: Spot) => Spot
 }
@@ -86,6 +86,9 @@ export const TALKABLES: Talkable[] = [
   thing('bell', -5.9, 8.9, 'Ring the bell', { action: 'bell', marker: 1.5, range: 2.6 }),
   thing('coffee', 12.9, 11.6, 'Pour a coffee', { action: 'coffee', marker: 1.5, range: 2.3 }),
   thing('plant', -18.4, 12.6, 'Water the plant', { action: 'water', marker: 2.2, range: 2.3 }),
+  thing('guestbook', -9.6, 8.3, 'Sign the guestbook', { action: 'guestbook', marker: 1.5, range: 2.6 }),
+  thing('easel', 10, 2, 'Look at the easel', { marker: 2.0, range: 2.7 }),
+  { ...actor('car', car, 2.0), kind: 'thing', range: 3.4, label: 'Honk the horn', action: 'honk' },
 
   /* ---- seats ---- */
   chair('seat-sofa', 'Sit on the sofa', { x: 16.9, z: 12.7, heading: Math.PI, exit: [16.9, 10.9] }),

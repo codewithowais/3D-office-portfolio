@@ -1,5 +1,7 @@
 import type { Pose, Sample } from './actor'
 import { receptionist, TOUR_LEN } from './actors'
+import { clock } from './clock'
+import { player as playerRef } from './player'
 
 /**
  * Ayesha's guided tour. She walks you through the office, stopping to tell you about each part, waits
@@ -39,6 +41,8 @@ export const escort = {
   i: 0,
   timer: 0,
   warned: false,
+  /** while the clock is before this, she waves / gestures at the visitor */
+  greetUntil: 0,
 }
 
 const SPEED = 1.6
@@ -131,7 +135,21 @@ export function updateEscort(dt: number, player: { x: number; z: number }) {
   }
 }
 
+const greetOut: Sample = { x: 0, y: 0, z: 0, heading: 0, speed: 0, pose: 'stand', visible: true }
+
 /** Where Ayesha is right now: the scripted tour actor, or the live guide while she is escorting. */
 export function receptionistSample(t: number): Sample {
-  return escort.state === 'idle' ? receptionist.sample(t % TOUR_LEN) : escort.sample
+  const base = escort.state === 'idle' ? receptionist.sample(t % TOUR_LEN) : escort.sample
+  if (escort.greetUntil <= worldClockNow() || base.speed > 0.1) return base
+  // welcoming a visitor: turn towards them and gesture (seated or standing)
+  greetOut.x = base.x
+  greetOut.y = base.y
+  greetOut.z = base.z
+  greetOut.speed = 0
+  greetOut.visible = base.visible
+  greetOut.heading = Math.atan2(playerRef.x - base.x, playerRef.z - base.z)
+  greetOut.pose = base.pose === 'sit' ? 'sittalk' : 'wave'
+  return greetOut
 }
+
+const worldClockNow = () => clock.t

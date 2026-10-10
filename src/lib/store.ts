@@ -3,19 +3,25 @@ import { clock } from './clock'
 import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
-import { NPCS } from './dialogue'
+import { NPCS, fill } from './dialogue'
 import { readColor, readName, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
 import { clock as worldClock } from './clock'
-import { resetEscort, startEscort } from './escort'
+import { escort, resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
 import { TALKABLES, spotOf, talkable } from './talkables'
 import { ZONES, type Zone } from './zones'
+import { spawnFor } from './world'
 import { doPose, input, player, resetPlayer, sitAt, standUp, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
 export type GfxError = 'lost' | 'crash' | null
 export type ProgressKind = keyof Progress
+export interface Greeting {
+  id: string
+  text: string
+  until: number
+}
 export interface Place {
   id: string
   title: string
@@ -59,6 +65,12 @@ interface State {
   nearBall: boolean
   /** sitting on a chair/sofa/bench */
   seated: boolean
+  /** a person welcoming you (shown as a bubble over their head) */
+  greeting: Greeting | null
+  greeted: string[]
+  /** football: a match is on, and its score */
+  playing: boolean
+  score: { red: number; blue: number }
   /** the place banner (shown briefly when you enter somewhere new) */
   place: Place | null
   progress: Progress
@@ -94,6 +106,8 @@ interface State {
   setNearby: (id: string | null) => void
   setNearBall: (v: boolean) => void
   enterZone: (z: Zone) => void
+  greet: (id: string) => void
+  setPlaying: (playing: boolean, score?: { red: number; blue: number }) => void
   clearPlace: () => void
   standUp: () => void
   setPlayerColor: (c: string) => void
@@ -129,6 +143,10 @@ export const useStore = create<State>((set, get) => ({
   nearby: null,
   nearBall: false,
   seated: false,
+  greeting: null,
+  greeted: [],
+  playing: false,
+  score: { red: 0, blue: 0 },
   place: null,
   progress: readProgress(),
   playerColor: readColor(),
@@ -160,8 +178,19 @@ export const useStore = create<State>((set, get) => ({
   setActiveRoom: (activeRoom) => set({ activeRoom }),
   togglePause: () => set((s) => ({ paused: !s.paused })),
   setMode: (mode) => set({ mode }),
-  flyTo: (pos, target, room = null) =>
-    set({ mode: 'explore', walk: false, talking: null, nearby: null, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
+  flyTo: (pos, target, room = null) => {
+    // while walking, picking a place takes your character there instead of leaving walk mode
+    if (get().walk) {
+      const dest = spawnFor(room, pos)
+      if (dest) {
+        get().standUp()
+        teleport(dest[0], dest[1])
+        set({ talking: null, nearby: null, activeRoom: room })
+        return
+      }
+    }
+    set({ mode: 'explore', walk: false, talking: null, nearby: null, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } })
+  },
   startDemo: () => {
     clock.t = 0
     stopSoccer()
@@ -187,7 +216,7 @@ export const useStore = create<State>((set, get) => ({
     stopSoccer()
     resetEscort()
     standUp()
-    set({ walk: false, nearby: null, nearBall: false, seated: false, place: null, talking: null })
+    set({ walk: false, nearby: null, nearBall: false, seated: false, place: null, talking: null, greeting: null, greeted: [], playing: false })
   },
   setNearby: (nearby) => set({ nearby }),
   setNearBall: (nearBall) => set({ nearBall }),
@@ -202,6 +231,14 @@ export const useStore = create<State>((set, get) => ({
     set({ askName: false, nameAsked: true })
   },
   openNamePrompt: () => set({ askName: true, talking: null }),
+  greet: (id) => {
+    const npc = NPCS[id]
+    if (!npc?.greet || get().greeted.includes(id) || get().talking) return
+    const text = fill(npc.greet, get().playerName)
+    if (id === 'receptionist') escort.greetUntil = worldClock.t + 4.5
+    set({ greeted: [...get().greeted, id], greeting: { id, text, until: performance.now() + 5000 }, notice: `${npc.name}: ${text}` })
+  },
+  setPlaying: (playing, score) => set(score ? { playing, score } : { playing }),
   enterZone: (z) => {
     set({ place: { id: z.id, title: z.title, sub: z.sub, nonce: performance.now() } })
     get().mark('places', z.id)
@@ -241,6 +278,11 @@ export const useStore = create<State>((set, get) => ({
       } else if (tk.action === 'bell') {
         doPose('wave', now, 1.3)
         set({ notice: 'Ding! Ayesha: Welcome! Ask me for a tour whenever you like.' })
+      } else if (tk.action === 'guestbook') {
+        const n = get().playerName
+        set({ notice: n ? `You signed the guestbook, ${n}.` : 'You signed the guestbook.' })
+      } else if (tk.action === 'honk') {
+        set({ notice: 'Beep beep!' })
       } else if (tk.action === 'water') {
         doPose('water', now, 3.8)
         set({ notice: 'The plant looks much happier.' })
@@ -274,7 +316,12 @@ export const useStore = create<State>((set, get) => ({
       teleport(opt.teleport[0], opt.teleport[1])
       return set({ talking: null })
     }
-    set({ talking: opt.next && NPCS[t.id].nodes[opt.next] ? { id: t.id, node: opt.next } : null })
+    // The conversation stays open until you say goodbye or walk away: answers without a destination
+    // go back to the start rather than closing the chat.
+    const ends = /^(thanks, bye|bye|goodbye|see you|step away)/i.test(opt.label)
+    if (ends) return set({ talking: null })
+    const next = opt.next && NPCS[t.id].nodes[opt.next] ? opt.next : 'hi'
+    set({ talking: { id: t.id, node: next } })
   },
   endTalk: () => set({ talking: null }),
 }))

@@ -104,3 +104,23 @@ export const WALLS: WallDef[] = [
   { a: [3, -4], b: [20, -4], t: 0.3 },
   { a: [12, 4], b: [12, 14], kind: 'glass', t: 0.2, gaps: [{ at: 9, w: 3 }] },
 ]
+
+/** Where the player lands when they pick a place from the menu while walking. */
+export const SPAWNS: Record<string, [number, number]> = {
+  reception: [-9, 5.4],
+  studio: [-12, 2.6],
+  design: [11, 1.2],
+  meeting: [7.5, 6.2],
+  operations: [-12.6, -9.3],
+  lounge: [14, 7],
+  boss: [9, -9],
+  gate: [0, 22.5],
+  pitch: [-35, 4],
+  parking: [41, 8],
+}
+
+export function spawnFor(room: string | null, pos: V3): [number, number] | null {
+  if (room && SPAWNS[room]) return SPAWNS[room]
+  const sc = SCENIC.find((s) => s.pos[0] === pos[0] && s.pos[1] === pos[1] && s.pos[2] === pos[2])
+  return sc && SPAWNS[sc.id] ? SPAWNS[sc.id] : null
+}
