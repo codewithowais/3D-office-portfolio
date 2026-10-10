@@ -4,6 +4,7 @@ import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
 import { NPCS } from './dialogue'
+import { readName, readSkipped, saveName, saveSkipped } from './profile'
 import { input, player, resetPlayer, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
@@ -23,6 +24,11 @@ interface State {
   theme: ThemeName
   ready: boolean
   walk: boolean
+  /** what the visitor told us to call them ('' if unknown) */
+  playerName: string
+  /** show the 'what's your name?' prompt */
+  askName: boolean
+  nameAsked: boolean
   /** person within talking distance (walk mode) */
   nearby: string | null
   /** the conversation in progress */
@@ -54,6 +60,9 @@ interface State {
   startWalk: () => void
   stopWalk: () => void
   setNearby: (id: string | null) => void
+  setPlayerName: (name: string) => void
+  skipName: () => void
+  openNamePrompt: () => void
   startTalk: (id?: string) => void
   choose: (i: number) => void
   endTalk: () => void
@@ -76,6 +85,9 @@ export const useStore = create<State>((set, get) => ({
   theme: 'Day',
   ready: false,
   walk: false,
+  playerName: readName(),
+  askName: false,
+  nameAsked: !!readName() || readSkipped(),
   nearby: null,
   talking: null,
   chapter: 0,
@@ -121,6 +133,7 @@ export const useStore = create<State>((set, get) => ({
       activeRoom: null,
       flight: { pos: [0, 5.4, 33], target: [0, 1.3, 25], nonce: performance.now() },
       talking: null,
+      askName: !get().nameAsked,
     })
   },
   stopWalk: () => {
@@ -129,6 +142,17 @@ export const useStore = create<State>((set, get) => ({
     set({ walk: false, nearby: null, talking: null })
   },
   setNearby: (nearby) => set({ nearby }),
+  setPlayerName: (name) => {
+    const clean = name.replace(/\s+/g, ' ').trim().slice(0, 24)
+    if (clean) saveName(clean)
+    else saveSkipped()
+    set({ playerName: clean, askName: false, nameAsked: true })
+  },
+  skipName: () => {
+    saveSkipped()
+    set({ askName: false, nameAsked: true })
+  },
+  openNamePrompt: () => set({ askName: true, talking: null }),
   startTalk: (id) => {
     const who = id ?? get().nearby
     if (!who || !NPCS[who] || !get().walk) return
@@ -141,6 +165,13 @@ export const useStore = create<State>((set, get) => ({
     if (!t) return
     const opt = NPCS[t.id]?.nodes[t.node]?.options[i]
     if (!opt) return
+    if (opt.href) {
+      // links open without leaving the conversation
+      if (opt.href.startsWith('mailto:')) window.location.href = opt.href
+      else window.open(opt.href, '_blank', 'noopener,noreferrer')
+      return
+    }
+    if (opt.action === 'askName') return set({ askName: true, talking: null })
     if (opt.teleport) {
       teleport(opt.teleport[0], opt.teleport[1])
       return set({ talking: null })
