@@ -65,6 +65,12 @@ export default function Experience() {
         st.standUp()
         return
       }
+      if (e.code === 'KeyR' && !e.repeat) {
+        // R cycles walk -> run -> sprint
+        e.preventDefault()
+        st.cycleSpeed()
+        return
+      }
       if (e.code === 'KeyE') {
         // E starts a conversation, and while talking picks the first answer ("continue")
         e.preventDefault()

@@ -168,7 +168,7 @@ export function updateSoccer(dt: number, t: number, player: PlayerRef) {
     playerCool = 0.4
   } else if (dp < 1.2 && b.y < 0.7 && playerCool === 0) {
     // dribbling: the ball is drawn to a spot just ahead of your feet
-    const lead = 0.55 + Math.min(player.speed, 4.4) * 0.07
+    const lead = 0.55 + Math.min(player.speed, 6.6) * 0.07
     b.vx = (player.x + hx * lead - b.x) * 9
     b.vz = (player.z + hz * lead - b.z) * 9
     b.vy = 0

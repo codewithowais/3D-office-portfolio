@@ -6,6 +6,12 @@ export const player: Sample = { x: 0, y: 0, z: 25, heading: Math.PI, speed: 0, p
 
 export const SPAWN = { x: 0, z: 25, heading: Math.PI }
 
+/** Movement speeds in metres per second: walk, run, sprint. */
+export const SPEEDS = [2.3, 4.4, 6.6] as const
+export const SPEED_NAMES = ['Walk', 'Run', 'Sprint'] as const
+/** The chosen base speed (index into SPEEDS). Holding Shift / "Hold to run" goes one level faster. */
+export const motion = { level: 0 }
+
 /** Held keys / on-screen pad directions. */
 export const input = { f: false, b: false, l: false, r: false, run: false }
 
@@ -86,7 +92,8 @@ export function stepPlayer(fx: number, fz: number, dt: number) {
   const len = Math.hypot(mx, mz) || 1
   mx /= len
   mz /= len
-  const speed = input.run ? 4.4 : 2.3
+  const level = Math.min(2, motion.level + (input.run ? 1 : 0))
+  const speed = SPEEDS[level]
   player.x += mx * speed * dt
   player.z += mz * speed * dt
   resolve(player, 0.38)

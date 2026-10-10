@@ -4,14 +4,14 @@ import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
 import { NPCS, fill } from './dialogue'
-import { readColor, readName, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
+import { readColor, readName, readSpeed, saveSpeed, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
 import { clock as worldClock } from './clock'
 import { escort, resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
 import { TALKABLES, spotOf, talkable } from './talkables'
 import { ZONES, type Zone } from './zones'
 import { spawnFor } from './world'
-import { doPose, input, player, resetPlayer, sitAt, standUp, teleport } from './player'
+import { doPose, input, motion, player, resetPlayer, sitAt, standUp, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
@@ -75,6 +75,8 @@ interface State {
   place: Place | null
   progress: Progress
   playerColor: string
+  /** 0 walk, 1 run, 2 sprint */
+  speedLevel: number
   /** the conversation in progress */
   talking: { id: string; node: string } | null
   /** true once the user picked a quality themselves: auto-downgrade then stays out of the way */
@@ -111,6 +113,8 @@ interface State {
   clearPlace: () => void
   standUp: () => void
   setPlayerColor: (c: string) => void
+  setSpeedLevel: (n: number) => void
+  cycleSpeed: () => void
   mark: (kind: ProgressKind, id: string) => void
   setPlayerName: (name: string) => void
   skipName: () => void
@@ -121,6 +125,11 @@ interface State {
 }
 
 let restores: number[] = []
+function initSpeed() {
+  const n = readSpeed()
+  motion.level = n
+  return n
+}
 const dev = getDevice()
 const START_Q: Quality = dev.tier === 'high' ? 'High' : dev.tier === 'medium' ? 'Medium' : 'Low'
 
@@ -150,6 +159,7 @@ export const useStore = create<State>((set, get) => ({
   place: null,
   progress: readProgress(),
   playerColor: readColor(),
+  speedLevel: initSpeed(),
   talking: null,
   chapter: 0,
   activeRoom: null,
@@ -248,6 +258,13 @@ export const useStore = create<State>((set, get) => ({
     standUp()
     set({ seated: false })
   },
+  setSpeedLevel: (n) => {
+    const level = Math.max(0, Math.min(2, Math.round(n)))
+    motion.level = level
+    saveSpeed(level)
+    set({ speedLevel: level })
+  },
+  cycleSpeed: () => get().setSpeedLevel((get().speedLevel + 1) % 3),
   setPlayerColor: (playerColor) => {
     saveColor(playerColor)
     set({ playerColor })
