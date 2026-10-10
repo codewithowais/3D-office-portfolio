@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { makeLoop } from '@/lib/actor'
 import { V3, rng } from '@/lib/math'
+import { addObstacles } from '@/lib/collision'
 import { GRID } from '@/lib/world'
 import { useTheme } from '../Atmosphere'
 import { MovingCar, CAR_COLORS } from './Car'
@@ -172,8 +173,7 @@ function Walkers() {
 }
 
 
-export function City() {
-  const { lots, trees, extras } = useMemo(() => {
+function buildCity() {
     const rand = rng(2024)
     const lots: Lot[] = []
     const trees: V3[] = []
@@ -259,7 +259,15 @@ export function City() {
         ex.awningColors.push(AWNINGS[b.variant % AWNINGS.length])
       }
     return { lots, trees, extras: ex }
-  }, [])
+}
+
+const CITY = buildCity()
+
+/* walk mode: every building is solid */
+addObstacles(CITY.lots.flatMap((l) => l.blds.map((b) => ({ x0: b.x - b.w / 2 - 0.2, x1: b.x + b.w / 2 + 0.2, z0: b.z - b.d / 2 - 0.2, z1: b.z + b.d / 2 + 0.2 }))))
+
+export function City() {
+  const { lots, trees, extras } = CITY
 
   const concreteLight = useMemo(() => mat('#c7cdd3', { rough: 0.85 }), [])
   const roofDark = useMemo(() => mat('#4d535a', { rough: 0.95 }), [])

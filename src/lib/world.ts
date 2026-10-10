@@ -79,3 +79,28 @@ export const GRID = {
   road: 8,
   seaZ: -222,
 }
+
+export interface WallDef {
+  a: [number, number]
+  b: [number, number]
+  kind?: 'solid' | 'glass'
+  gaps?: { at: number; w: number }[]
+  t?: number
+}
+
+/** Every wall in the office. Rendered by Office.tsx and used for walk-mode collision. */
+export const WALLS: WallDef[] = [
+  { a: [-20, 14], b: [20, 14], kind: 'glass', t: 0.3, gaps: [{ at: 0, w: 3.6 }] },
+  { a: [-20, -14], b: [20, -14] },
+  { a: [-20, -14], b: [-20, 14] },
+  { a: [20, -14], b: [20, 14] },
+  { a: [-3, -14], b: [-3, 14], kind: 'glass', t: 0.2, gaps: [{ at: 9, w: 4 }, { at: 0, w: 3 }, { at: -9, w: 3 }] },
+  { a: [3, 4], b: [3, 14], kind: 'glass', t: 0.2, gaps: [{ at: 9, w: 3 }] },
+  { a: [3, -4], b: [3, 4], kind: 'glass', t: 0.2, gaps: [{ at: 0, w: 3 }] },
+  { a: [3, -14], b: [3, -4], t: 0.3, gaps: [{ at: -9, w: 1.8 }] },
+  { a: [-20, 4], b: [-3, 4], kind: 'glass', t: 0.2 },
+  { a: [-20, -4], b: [-3, -4], kind: 'glass', t: 0.2 },
+  { a: [3, 4], b: [20, 4], kind: 'glass', t: 0.2 },
+  { a: [3, -4], b: [20, -4], t: 0.3 },
+  { a: [12, 4], b: [12, 14], kind: 'glass', t: 0.2, gaps: [{ at: 9, w: 3 }] },
+]

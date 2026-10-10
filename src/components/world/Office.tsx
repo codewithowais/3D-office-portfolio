@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import { boss, receptionist } from '@/lib/actors'
 import { TOUR_LEN, doorAngle } from '@/lib/tour'
-import { BRAND, C } from '@/lib/world'
+import { BRAND, C, WALLS } from '@/lib/world'
 import { useTheme } from '../Atmosphere'
 import { Person } from './Person'
 import { Art, Chair, Corkboard, Monitor, Plant, Shelf, Sitter, Sofa, Workstation } from './Furniture'
@@ -286,27 +286,16 @@ export function Office() {
       <Lounge />
       <BossCabin />
 
-      {/* exterior walls */}
-      <Wall a={[-20, 14]} b={[20, 14]} kind="glass" t={0.3} gaps={[{ at: 0, w: 3.6 }]} />
+      {WALLS.map((w, i) => (
+        <Wall key={i} a={w.a} b={w.b} kind={w.kind} gaps={w.gaps} t={w.t} />
+      ))}
       <Box p={[0, 2.72, 14]} s={[40.2, 0.62, 0.4]} c={C.cream} />
       <Box p={[0, 3.06, 14]} s={[40.4, 0.12, 0.54]} c={C.wood} />
-      <Wall a={[-20, -14]} b={[20, -14]} />
-      <Wall a={[-20, -14]} b={[-20, 14]} />
-      <Wall a={[20, -14]} b={[20, 14]} />
       <Sign p={[-9, 2.72, 14.24]} w={4.4} h={0.44} text={BRAND.site} />
       <Sign p={[0, 2.72, 14.24]} w={2.6} h={0.44} text={BRAND.name} bg="#0f8b8d" />
 
       {/* corridor partitions */}
-      <Wall a={[-3, -14]} b={[-3, 14]} kind="glass" t={0.2} gaps={[{ at: 9, w: 4 }, { at: 0, w: 3 }, { at: -9, w: 3 }]} />
-      <Wall a={[3, 4]} b={[3, 14]} kind="glass" t={0.2} gaps={[{ at: 9, w: 3 }]} />
-      <Wall a={[3, -4]} b={[3, 4]} kind="glass" t={0.2} gaps={[{ at: 0, w: 3 }]} />
-      <Wall a={[3, -14]} b={[3, -4]} gaps={[{ at: -9, w: 1.8 }]} t={0.3} />
       {/* room dividers */}
-      <Wall a={[-20, 4]} b={[-3, 4]} kind="glass" t={0.2} />
-      <Wall a={[-20, -4]} b={[-3, -4]} kind="glass" t={0.2} />
-      <Wall a={[3, 4]} b={[20, 4]} kind="glass" t={0.2} />
-      <Wall a={[3, -4]} b={[20, -4]} t={0.3} />
-      <Wall a={[12, 4]} b={[12, 14]} kind="glass" t={0.2} gaps={[{ at: 9, w: 3 }]} />
       <BossDoor />
 
       {/* people with their own scripts */}
