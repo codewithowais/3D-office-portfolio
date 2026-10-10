@@ -1,9 +1,10 @@
 'use client'
-import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
+import { dprFor, getDevice } from '@/lib/device'
 import { player, stepPlayer } from '@/lib/player'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
@@ -120,7 +121,8 @@ function Director() {
 function Lights() {
   const quality = useStore((s) => s.quality)
   const t = useTheme()
-  const size = quality === 'High' ? 4096 : 2048
+  const d = getDevice()
+  const size = quality === 'High' ? (d.maxTexture >= 8192 && !d.mobile ? 4096 : 2048) : d.mobile ? 1024 : 2048
   return (
     <>
       <hemisphereLight args={[t.hemi.sky, t.hemi.ground, t.hemi.intensity]} />
@@ -143,16 +145,90 @@ function Lights() {
   )
 }
 
+/**
+ * Frame-rate watchdog. If the device can't hold ~30 fps it steps quality down (High -> Medium -> Low,
+ * then resolution), so a slow machine settles instead of grinding. Skips warm-up and hidden tabs.
+ */
+let liveCanvas: HTMLCanvasElement | null = null
+let lastRestore = 0
+
+function AutoQuality() {
+  const acc = useRef({ time: 0, frames: 0, warm: 0, strikes: 0 })
+  useFrame((_, delta) => {
+    const a = acc.current
+    const st = useStore.getState()
+    if (!st.ready || document.hidden || delta > 0.5) {
+      a.time = 0
+      a.frames = 0
+      return
+    }
+    a.warm += delta
+    if (a.warm < 4) return // first seconds include shader compilation
+    a.time += delta
+    a.frames++
+    if (a.time < 2.5) return
+    const fps = a.frames / a.time
+    a.time = 0
+    a.frames = 0
+    a.strikes = fps < 27 ? a.strikes + 1 : 0
+    if (a.strikes >= 2) {
+      a.strikes = 0
+      a.warm = 0 // give the new settings a moment before judging again
+      st.autoDowngrade()
+    }
+  })
+  return null
+}
+
+/** Canvas pixel ratio that respects the quality's pixel budget and follows window resizes. */
+function useDpr(quality: 'Low' | 'Medium' | 'High', scale: number) {
+  const [size, setSize] = useState(() => ({ w: window.innerWidth, h: window.innerHeight }))
+  useEffect(() => {
+    let id = 0
+    const onResize = () => {
+      clearTimeout(id)
+      id = window.setTimeout(() => setSize({ w: window.innerWidth, h: window.innerHeight }), 150)
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      clearTimeout(id)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [])
+  return dprFor(quality, size.w, size.h, scale)
+}
+
 export default function Scene() {
   const quality = useStore((s) => s.quality)
+  const scale = useStore((s) => s.dprScale)
   const t = useTheme()
-  const dpr: [number, number] = quality === 'High' ? [1, 2] : quality === 'Medium' ? [1, 1.5] : [1, 1]
+  const dpr = useDpr(quality, scale)
   return (
     <Canvas
       shadows={quality !== 'Low'}
       dpr={dpr}
+      onCreated={(state) => {
+        const { gl } = state
+        const el = gl.domElement
+        liveCanvas = el
+        el.addEventListener('webglcontextlost', (e) => {
+          e.preventDefault() // lets the browser restore the context instead of leaving a dead canvas
+          // ignore the event a disposed canvas fires on its way out, otherwise recovery would retrigger itself
+          if (liveCanvas !== el || performance.now() - lastRestore < 3000) return
+          useStore.getState().setError('lost')
+        })
+        el.addEventListener('webglcontextrestored', () => {
+          if (liveCanvas !== el) return
+          lastRestore = performance.now()
+          useStore.getState().restoreScene()
+        })
+        if (process.env.NODE_ENV !== 'production') {
+          ;(window as unknown as Record<string, unknown>).__gl = gl
+          ;(window as unknown as Record<string, unknown>).__r3f = state
+        }
+      }}
       camera={{ fov: 38, near: 0.5, far: 2400, position: [-6, 14, 40] }}
-      gl={{ antialias: false, toneMapping: THREE.NoToneMapping, powerPreference: 'high-performance' }}
+      gl={{ antialias: false, toneMapping: THREE.NoToneMapping, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false }}
     >
       <color attach="background" args={[t.fog]} />
       <fog attach="fog" args={[t.fog, 520, 3600]} />
@@ -160,6 +236,7 @@ export default function Scene() {
       <Lighting />
       <Lights />
       <Director />
+      <AutoQuality />
       <Suspense fallback={null}>
         <Office />
         <Surroundings />

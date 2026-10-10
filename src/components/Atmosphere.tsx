@@ -1,9 +1,10 @@
 'use client'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { Environment, Lightformer } from '@react-three/drei'
 import { EffectComposer, N8AO, Bloom, SMAA, Vignette, ToneMapping, BrightnessContrast, HueSaturation } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
+import { getDevice } from '@/lib/device'
 import { useStore } from '@/lib/store'
 import { THEMES } from '@/lib/themes'
 import { cloudTexture } from './world/textures'
@@ -30,6 +31,10 @@ export function Sky() {
     [t],
   )
   const cloud = useMemo(() => new THREE.SpriteMaterial({ map: cloudTexture(), transparent: true, opacity: t.cloud.opacity, color: t.cloud.tint, depthWrite: false, fog: false }), [t])
+  useEffect(() => () => {
+    mat.dispose()
+    cloud.dispose()
+  }, [mat, cloud])
   const clouds = useMemo(
     () =>
       Array.from({ length: 16 }, (_, i) => {
@@ -68,14 +73,14 @@ export function Effects() {
   const q = useStore((s) => s.quality)
   const t = useTheme()
   return (
-    <EffectComposer multisampling={q === 'High' ? 0 : 4} enableNormalPass={false}>
+    <EffectComposer multisampling={q === 'High' ? 0 : getDevice().mobile ? 0 : 4} enableNormalPass={false}>
       {q === 'High' ? <N8AO aoRadius={1.6} distanceFalloff={1} intensity={2.6} quality="medium" halfRes /> : <></>}
       {q !== 'Low' ? <Bloom intensity={t.bloom.intensity} luminanceThreshold={t.bloom.threshold} luminanceSmoothing={0.25} mipmapBlur /> : <></>}
       <ToneMapping mode={ToneMappingMode.NEUTRAL} />
       <HueSaturation saturation={t.sat} />
       <BrightnessContrast contrast={t.contrast} brightness={t.brightness} />
       {q === 'High' ? <Vignette offset={0.32} darkness={0.4} /> : <></>}
-      {q === 'High' ? <SMAA /> : <></>}
+      {q === 'High' || getDevice().mobile ? <SMAA /> : <></>}
     </EffectComposer>
   )
 }

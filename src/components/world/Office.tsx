@@ -6,6 +6,7 @@ import { clock } from '@/lib/clock'
 import { boss, receptionist } from '@/lib/actors'
 import { TOUR_LEN, doorAngle } from '@/lib/tour'
 import { BRAND, C, WALLS } from '@/lib/world'
+import { useStore } from '@/lib/store'
 import { useTheme } from '../Atmosphere'
 import { Person } from './Person'
 import { Art, Chair, Corkboard, Monitor, Plant, Shelf, Sitter, Sofa, Workstation } from './Furniture'
@@ -267,12 +268,15 @@ const INTERIOR_LIGHTS: [number, number, number][] = [
 
 export function Office() {
   const theme = useTheme()
+  const quality = useStore((s) => s.quality)
+  // every light costs every lit pixel, so weaker settings get fewer of them
+  const lights = quality === 'High' ? INTERIOR_LIGHTS : quality === 'Medium' ? INTERIOR_LIGHTS.filter((_, i) => i % 2 === 0) : []
   const corridor = useFloor(6, 28, '#dfe3e6')
   const reception = useMemo(() => (t: number) => receptionist.sample(t), [])
   const bossS = useMemo(() => (t: number) => boss.sample(t), [])
   return (
     <group>
-      {theme.interior > 0 && INTERIOR_LIGHTS.map((p, i) => <pointLight key={i} position={p} intensity={theme.interior * 70} distance={17} decay={2} color="#ffe3b8" />)}
+      {theme.interior > 0 && lights.map((p, i) => <pointLight key={i} position={p} intensity={theme.interior * 70} distance={17} decay={2} color="#ffe3b8" />)}
       {/* slab + corridor */}
       <Box p={[0, -0.05, 0]} s={[41, 0.08, 29]} c="#c6ced4" receive />
       <Floor x0={-3} x1={3} z0={-14} z1={14} y={0.02} m={corridor} />
