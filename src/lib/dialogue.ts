@@ -37,6 +37,8 @@ export interface Npc {
   role: string
   /** accent colour of the speaker badge */
   accent: string
+  /** what they say when you first come close (before you have talked) */
+  greet?: string
   nodes: Record<string, Node>
 }
 
@@ -70,8 +72,10 @@ export const NPCS: Record<string, Npc> = {
           { label: 'Tell me about yourself', next: 'about' },
           { label: 'What have you built?', next: 'work' },
           { label: "What's your tech stack?", next: 'stack' },
+          { label: 'Open source and AI work', next: 'oss' },
           { label: 'Are you available to hire?', next: 'hire' },
           { label: 'How was this office built?', next: 'tech' },
+          { label: 'Tell me something fun', next: 'fun' },
           { label: 'Just looking around' },
         ],
       },
@@ -124,6 +128,19 @@ export const NPCS: Record<string, Npc> = {
         text: 'Zulaal is a brand website for a premium Pakistani water company, with a three.js 3D hero, custom bottle orders and a Firebase admin panel. It is where my 3D work started, and it led to this very office.',
         options: [{ label: 'Open Zulaal', href: 'https://zulaal.vercel.app' }, back('work')],
       },
+      oss: {
+        text: 'A lot of it is open and free to try: AI Prompt Builder (60+ fill-in-the-blank templates, no sign-up), Ledgerly, AI Study Partner, Decidr, Cadence (a prompt-native AI video editor), CrispCast (an offline screen recorder), Mini Gantt, and a 16-week Agentic AI course. There are 60+ repositories on GitHub.',
+        options: [
+          { label: 'Open AI Prompt Builder', href: 'https://codewithowais.github.io/flutter-prompt-builder/' },
+          { label: 'Open the Agentic AI course', href: 'https://codewithowais.github.io/agentic-ai/' },
+          { label: 'Browse all repositories', href: OWNER.github },
+          back('hi'),
+        ],
+      },
+      fun: {
+        text: "I teach what I build: the Flutter lessons at Jawan Pakistan feed back into the apps I ship. Mini Gantt, for instance, is a dependency-free drag-and-resize Gantt chart. And this office is a portfolio you can walk around in.",
+        options: [{ label: 'Can you build something like this for me?', next: 'hire' }, back('hi')],
+      },
       stack: {
         text: 'TypeScript, JavaScript, Dart, C# and Python. Angular, React, Next.js and Flutter on the front; Node.js, NestJS and .NET Core on the back. MongoDB, PostgreSQL, SQL Server and Redis for data, and AWS, Docker and GitHub Actions to ship.',
         options: [{ label: 'What have you built with it?', next: 'work' }, back('hi')],
@@ -153,9 +170,15 @@ export const NPCS: Record<string, Npc> = {
           { label: 'Is he available to hire?', next: 'hire' },
           { label: 'Show me around the office', action: 'escort' },
           { label: 'Take me somewhere', next: 'go' },
+          { label: 'Where can I play football?', teleport: [-35, 4] },
+          { label: 'What is there to do here?', next: 'todo' },
           { label: 'Change my name or shirt colour', action: 'askName' },
           { label: 'Thanks, bye!' },
         ],
+      },
+      todo: {
+        text: 'Plenty! Chat to anyone with a diamond over their head, sit on the sofas or at the free desks, pour a coffee in the lounge, ring my bell, play football with red, or read the boards. A little Explorer counter in the corner tracks what you have found.',
+        options: [{ label: 'Show me around the office', action: 'escort' }, back('hi')],
       },
       who: {
         text: 'Owais is a Staff Software Engineer from Karachi with six years of experience in Angular, React, Node.js, .NET and Flutter. He is on the founding team at SimpliEd, which serves 25,000+ users, and he is Lead Trainer for Flutter at Jawan Pakistan.',
@@ -178,7 +201,12 @@ export const NPCS: Record<string, Npc> = {
         options: [
           { label: "Owais's cabin", teleport: [9, -9] },
           { label: 'The Work Studio', teleport: [-12, 2.6] },
+          { label: 'The Design Room', teleport: [11, 1.2] },
+          { label: 'The Meeting Room', teleport: [7.5, 6.2] },
+          { label: 'Operations', teleport: [-12.6, -9.3] },
           { label: 'The Lounge', teleport: [14, 7] },
+          { label: 'The football pitch', teleport: [-35, 4] },
+          { label: 'The parking lot', teleport: [41, 8] },
           { label: 'Never mind', next: 'hi' },
         ],
       },
@@ -194,7 +222,7 @@ export const NPCS: Record<string, Npc> = {
     nodes: {
       hi: {
         text: `Morning, {name}! Owais's office is straight through the gate. Mind the road, the traffic here never stops.`,
-        options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: 'Where is Owais based?', next: 'where' }, bye],
+        options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: 'Where is Owais based?', next: 'where' }, { label: 'Where can I play football?', teleport: [-35, 4] }, bye],
       },
       tips: {
         text: 'Head in, say hi to Ayesha at reception, then follow the corridor to the Boss Cabin. A diamond floats over everything you can interact with: people, computers, boards, chairs, even the coffee machine. Press E near one. Hold Shift to run, Esc to stop walking.',
@@ -322,7 +350,7 @@ export const NPCS: Record<string, Npc> = {
     nodes: {
       hi: {
         text: `Hey {name}! Red is a player short today. Why don't you jump in? Just walk onto the pitch.`,
-        options: [{ label: 'How do I play?', next: 'how' }, { label: "Who's winning?", next: 'score' }, bye],
+        options: [{ label: 'How do I play?', next: 'how' }, { label: "Who's winning?", next: 'score' }, { label: 'Take me to the ball!', teleport: [-38, 0] }, bye],
       },
       how: {
         text: 'Run into the ball to dribble it. When you are close, press E (or tap the Kick button) to shoot. You play for red and attack the left goal, and the shot bends towards it if you are roughly facing it.',
@@ -418,4 +446,63 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
+  easel: {
+    id: 'easel',
+    name: 'Easel',
+    role: "Zain's canvas",
+    accent: '#9b6fd1',
+    nodes: {
+      hi: {
+        text: 'A canvas on an easel with a half-finished palette: teal, coral, navy and a warm cream. A sticky note says "Night theme: more glow".',
+        options: [{ label: 'Who painted this?', next: 'who' }, { label: 'Step away' }],
+      },
+      who: {
+        text: 'Zain, who looks after the 3D and the look of things. The palette is the same one used across the whole office.',
+        options: [back('hi')],
+      },
+    },
+  },
+}
+
+/* ---------------- extras applied to everyone ---------------- */
+
+/** What each person says when you first come close. */
+const GREET: Record<string, string> = {
+  receptionist: "Welcome to the office, {name}! Press E and I'll be happy to show you around.",
+  boss: 'Ah, {name}! Come in, come in. Take a seat if you like.',
+  guard: 'Good morning, {name}! Mind the road.',
+  hamza: 'Hey {name}! Give me a second, I am mid-commit.',
+  sana: 'Hi {name}! Everything is green on my dashboards today.',
+  zain: 'Oh hello, {name}! Have you tried the Night theme?',
+  mahnoor: 'Hi {name}! Welcome to the mobile corner.',
+  usman: 'Take a seat, {name}! The sofa is very good.',
+  bilal: "{name}! Red needs a player. Join us on the pitch!",
+  hira: 'Hi {name}! Come and watch the match with us.',
+  visitor: 'Hello, {name}! Lovely office, isn\'t it?',
+}
+for (const [id, g] of Object.entries(GREET)) if (NPCS[id]) NPCS[id].greet = g
+
+/** Small talk, so every person has a few more things to say. */
+const SMALL: Record<string, [string, string]> = {
+  receptionist: ['Busy, in a good way! Visitors keep arriving and I love giving the tour.', 'Fun fact: the corridor is about 28 metres long, and nobody who follows me has ever got lost.'],
+  guard: ['Quiet. The shrubs are thriving and the gate is behaving.', 'The booth has the best view of the garden, the gate and the road all at once.'],
+  hamza: ['Deep in a component. Send coffee.', 'A good front end is felt, not seen: no jank, no layout jumps, nothing in your way.'],
+  sana: ['Watching dashboards and trying very hard not to get paged.', 'Most outages turn out to be configuration, not code. Check the boring stuff first.'],
+  zain: ['Tweaking the Night theme: I want the windows to glow just right.', 'Everything here is generated in code. There are no downloaded models at all.'],
+  mahnoor: ['Release-day energy!', 'Flutter lets you ship Android and iOS from one codebase, which is why Owais teaches it.'],
+  usman: ['Relaxed. This sofa is undefeated.', 'Beginners learn fastest by building something real in the first week.'],
+  bilal: ['Great match. Red is a player short, as you know.', 'A good pass finds the player in space, not the one standing still.'],
+  hira: ['Enjoying the game with Bilal.', 'The goal red attacks is the left one. Remember that when you shoot!'],
+  visitor: ['Excited! This is not what I expected from a portfolio.', 'I was told the whole city around the office is built in code.'],
+}
+for (const [id, [day, fact]] of Object.entries(SMALL)) {
+  const n = NPCS[id]
+  if (!n) continue
+  n.nodes.day = { text: day, options: [{ label: 'Tell me something interesting', next: 'fact' }, back('hi')] }
+  n.nodes.fact = { text: fact, options: [{ label: 'How is your day going?', next: 'day' }, back('hi')] }
+  const hi = n.nodes.hi
+  // put the small talk before the final "bye"/exit option, never exceeding nine choices
+  const at = Math.max(0, hi.options.length - 1)
+  if (hi.options.length < 8) hi.options.splice(at, 0, { label: 'How is your day going?', next: 'day' }, { label: 'Tell me something interesting', next: 'fact' })
+  else if (hi.options.length < 9) hi.options.splice(at, 0, { label: 'Tell me something interesting', next: 'fact' })
 }
