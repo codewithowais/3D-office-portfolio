@@ -2,6 +2,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { ballAt, car, guard, jogger, players, TOUR_LEN, visitor } from '@/lib/actors'
+import { player } from '@/lib/player'
 import { clock } from '@/lib/clock'
 import { C, BRAND } from '@/lib/world'
 import type { V3 } from '@/lib/math'
@@ -222,6 +223,28 @@ function Parking() {
   )
 }
 
+/** The person you control in walk mode, with a ring on the ground so you can find yourself in a crowd. */
+function PlayerAvatar() {
+  const ring = useRef<THREE.Mesh>(null)
+  const sample = useMemo(() => () => player, [])
+  useFrame(() => {
+    const r = ring.current
+    if (!r) return
+    r.visible = player.visible
+    r.position.set(player.x, 0.06, player.z)
+    r.scale.setScalar(1 + Math.sin(clock.t * 4) * 0.06)
+  })
+  return (
+    <>
+      <Person sample={sample} shirt="#ff6f59" pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
+      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+        <ringGeometry args={[0.62, 0.78, 40]} />
+        <meshBasicMaterial color="#17e0d6" transparent opacity={0.9} depthWrite={false} toneMapped={false} />
+      </mesh>
+    </>
+  )
+}
+
 export function Surroundings() {
   const guardSample = useMemo(() => (t: number) => guard.sample(t), [])
   const visitorSample = useMemo(() => (t: number) => visitor.sample(t), [])
@@ -240,6 +263,7 @@ export function Surroundings() {
       <Person sample={guardSample} loop={TOUR_LEN} shirt="#14324b" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Person sample={visitorSample} loop={TOUR_LEN} shirt="#2f9bff" pants="#26324a" skin="#d9a77f" hair="#2a1d14" />
       <MovingCar sample={carSample} loop={TOUR_LEN} color="#0e8f93" />
+      <PlayerAvatar />
       <Person sample={jogger.sample} shirt="#ff6f59" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Pitch />
       <Parking />

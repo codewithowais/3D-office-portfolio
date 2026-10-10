@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { clock } from './clock'
 import type { V3 } from './math'
 import type { ThemeName } from './themes'
+import { player, resetPlayer } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
@@ -18,6 +19,7 @@ interface State {
   quality: Quality
   theme: ThemeName
   ready: boolean
+  walk: boolean
   chapter: number
   activeRoom: string | null
   flight: Flight | null
@@ -30,6 +32,8 @@ interface State {
   setMode: (m: Mode) => void
   flyTo: (pos: V3, target: V3, room?: string | null) => void
   startDemo: () => void
+  startWalk: () => void
+  stopWalk: () => void
 }
 
 export const useStore = create<State>((set) => ({
@@ -38,6 +42,7 @@ export const useStore = create<State>((set) => ({
   quality: 'High',
   theme: 'Day',
   ready: false,
+  walk: false,
   chapter: 0,
   activeRoom: null,
   flight: null,
@@ -49,9 +54,25 @@ export const useStore = create<State>((set) => ({
   togglePause: () => set((s) => ({ paused: !s.paused })),
   setMode: (mode) => set({ mode }),
   flyTo: (pos, target, room = null) =>
-    set({ mode: 'explore', paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
+    set({ mode: 'explore', walk: false, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } }),
   startDemo: () => {
     clock.t = 0
-    set({ mode: 'demo', paused: false, chapter: 0, activeRoom: null, flight: null })
+    set({ mode: 'demo', walk: false, paused: false, chapter: 0, activeRoom: null, flight: null })
+  },
+  startWalk: () => {
+    resetPlayer()
+    player.visible = true
+    set({
+      mode: 'explore',
+      walk: true,
+      paused: false,
+      activeRoom: null,
+      flight: { pos: [0, 5.4, 33], target: [0, 1.3, 25], nonce: performance.now() },
+    })
+  },
+  stopWalk: () => {
+    player.visible = false
+    player.speed = 0
+    set({ walk: false })
   },
 }))

@@ -4,8 +4,10 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
+import { player, stepPlayer } from '@/lib/player'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
+import { roomAt } from '@/lib/world'
 import { Effects, Lighting, Sky, useTheme } from './Atmosphere'
 import { City } from './world/City'
 import { Office } from './world/Office'
@@ -77,6 +79,23 @@ function Director() {
         c.target.y += (f.target[1] - c.target.y) * k
         c.target.z += (f.target[2] - c.target.z) * k
         if (camera.position.distanceTo(new THREE.Vector3(...f.pos)) < 0.05) flight.current = null
+      } else if (st.walk && c) {
+        // third-person: move relative to where the camera looks, then drag the camera along with the player
+        let fx = c.target.x - camera.position.x
+        let fz = c.target.z - camera.position.z
+        const fl = Math.hypot(fx, fz) || 1
+        fx /= fl
+        fz /= fl
+        const px = player.x
+        const pz = player.z
+        stepPlayer(fx, fz, dt)
+        const dx = player.x - px
+        const dz = player.z - pz
+        camera.position.x += dx
+        camera.position.z += dz
+        c.target.set(player.x, 1.3, player.z)
+        const room = roomAt(player.x, player.z)
+        if (room !== st.activeRoom) st.setActiveRoom(room)
       }
     }
   })
