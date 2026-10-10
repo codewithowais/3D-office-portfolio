@@ -3,6 +3,8 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
+import { useStore } from '@/lib/store'
+import { spotOf, talkable } from '@/lib/talkables'
 import { PAIRS, lineAt, makePairSampler } from '@/lib/chat'
 import { Person } from './Person'
 
@@ -50,6 +52,32 @@ function bubble(text: string) {
 
 const SHOW_DIST2 = 38 * 38
 
+/** The bubble over someone who is welcoming you (see store.greet). */
+function GreetBubble() {
+  const ref = useRef<THREE.Sprite>(null)
+  useFrame(() => {
+    const sp = ref.current
+    if (!sp) return
+    const g = useStore.getState().greeting
+    if (!g || performance.now() > g.until) {
+      sp.visible = false
+      return
+    }
+    const at = spotOf(g.id, clock.t)
+    if (!at) {
+      sp.visible = false
+      return
+    }
+    const m = bubble(g.text)
+    if (sp.material !== m) sp.material = m
+    const aspect = (m.userData.aspect as number) ?? 3
+    sp.visible = true
+    sp.position.set(at.x, (talkable(g.id)?.marker ?? 2.3) + 0.55, at.z)
+    sp.scale.set(0.4 * aspect, 0.4, 1)
+  })
+  return <sprite ref={ref} visible={false} renderOrder={6} />
+}
+
 /** Pairs of people talking to each other. A bubble follows whoever is speaking. */
 export function Chat() {
   const samplers = useMemo(() => PAIRS.map((p) => [makePairSampler(p, 0), makePairSampler(p, 1)] as const), [])
@@ -75,6 +103,7 @@ export function Chat() {
   })
   return (
     <>
+      <GreetBubble />
       {PAIRS.map((p, i) => (
         <group key={p.id}>
           <Person sample={samplers[i][0]} shirt={p.a.shirt} pants={p.a.pants} skin={p.a.skin} hair={p.a.hair} />

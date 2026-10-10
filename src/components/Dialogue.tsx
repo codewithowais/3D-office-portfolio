@@ -16,16 +16,18 @@ export default function Dialogue() {
   const asking = useStore((s) => s.askName)
   const nearBall = useStore((s) => s.nearBall)
   const seated = useStore((s) => s.seated)
+  const playing = useStore((s) => s.playing)
   if (!walk) return null
   return (
     <>
       <NameGate />
       <ProgressChip />
+      {playing && <ScoreChip />}
       {!asking && !talking && <PlaceBanner />}
       {!asking && talking && <Conversation id={talking.id} node={talking.node} />}
       {!asking && !talking && seated && <StandPrompt />}
       {!asking && !talking && !seated && nearby && talkable(nearby) && <Prompt id={nearby} />}
-      {!asking && !talking && !seated && !nearby && nearBall && <KickPrompt />}
+      {!asking && !talking && !seated && playing && nearBall && <KickPrompt lower={!!nearby} />}
     </>
   )
 }
@@ -46,6 +48,19 @@ function PlaceBanner() {
         <p className="ui-display text-[20px] leading-tight text-[var(--ui-text)]">{place.title}</p>
         <p className="mt-0.5 text-[12px] text-[var(--ui-muted)]">{place.sub}</p>
       </div>
+    </div>
+  )
+}
+
+/** The football score while you're in the match. */
+function ScoreChip() {
+  const score = useStore((s) => s.score)
+  return (
+    <div className="ui-glass pointer-events-none absolute right-[118px] top-[calc(max(0.75rem,env(safe-area-inset-top))+54px)] z-10 flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] text-[var(--ui-text)] sm:right-[132px] sm:top-[68px]" aria-label={`Football: red ${score.red}, blue ${score.blue}`}>
+      <span aria-hidden>⚽</span>
+      <span className="font-semibold tabular-nums">
+        <span style={{ color: '#e8584a' }}>Red {score.red}</span> – <span style={{ color: '#2a62d6' }}>{score.blue} Blue</span>
+      </span>
     </div>
   )
 }
@@ -106,9 +121,9 @@ function StandPrompt() {
   )
 }
 
-function KickPrompt() {
+function KickPrompt({ lower }: { lower: boolean }) {
   return (
-    <div className={`${anchor} pointer-events-none flex sm:justify-start`}>
+    <div className={`${anchor} pointer-events-none flex sm:justify-start`} style={lower ? { marginTop: 56 } : undefined}>
       <button
         onClick={() => {
           soccer.kickRequest = true
