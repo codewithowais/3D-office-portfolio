@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Office — interactive 3D office
 
-## Getting Started
+A procedural 3D office and neighbourhood built with Next.js, React Three Fiber and zustand.
+No external 3D assets: everything is generated in code.
 
-First, run the development server:
+## Run
+
+Needs Node 20+ (tested on Node 22).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What's inside
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Auto-play tour** (about 3 minutes): guard watering the garden, a jogger, five-a-side football,
+  a receptionist leading a visitor to the boss, the visitor driving away, then a 360° city orbit.
+- **Explore mode**: orbit / zoom / pan, 7 room shortcuts, scenic places, Pause / Exit demo / Start demo.
+- **Quality**: Low (no shadows), Medium, High.
+- **Time of day**: Day, Golden hour, Night (themes live in `src/lib/themes.ts`).
+- Deep link into the tour with `/?t=60` (seconds).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Where to change things
 
-## Learn More
+| Want to change | File |
+| --- | --- |
+| Brand name and website on the signs | `src/lib/world.ts` (`BRAND`) |
+| Colours and lighting moods | `src/lib/world.ts` (`C`), `src/lib/themes.ts` |
+| Captions and camera shots | `src/lib/tour.ts` |
+| Who walks where, and when | `src/lib/actors.ts` |
+| Rooms and menu | `src/lib/world.ts` (`ROOMS`, `SCENIC`) |
+| Office walls and furniture | `src/components/world/Office.tsx`, `Furniture.tsx` |
+| Fence, booth, pitch, parking | `src/components/world/Surroundings.tsx` |
+| City, roads, traffic, waterfront | `src/components/world/City.tsx` |
+| UI overlay | `src/components/Overlay.tsx` |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Everything animated is a pure function of one clock (`src/lib/clock.ts`), so pausing freezes the whole world.
