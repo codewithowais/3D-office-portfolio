@@ -76,7 +76,7 @@ export function getRig(shirt: string, pants: string, skin: string, hair: string,
     paint(CAP, xf([0, 0.03, 0], [0.46, 0.12, 0.26], [0, 0, Math.PI / 2]), pants),
     ...(female
       ? [
-          paint(CAP, xf([0, -0.12, 0], [0.5, 0.2, 0.34], [0, 0, Math.PI / 2]), pants),
+          paint(CAP, xf([0, -0.12, 0], scarf ? [0.62, 0.26, 0.44] : [0.5, 0.2, 0.34], [0, 0, Math.PI / 2]), pants),
           ...(scarf
             ? []
             : [
@@ -124,8 +124,13 @@ export function getRig(shirt: string, pants: string, skin: string, hair: string,
     paint(SPH, xf([0.055, 0.81, 0.138], 0.017), EYE),
   ])
   const arm = merge([paint(CAP, xf([0, -0.27, 0], [0.115, 0.3, 0.115]), shirt), paint(SPH, xf([0, -0.58, 0], 0.062), skin)])
-  const thigh = merge([paint(CAP, xf([0, -0.225, 0], [0.19, 0.25, 0.2]), pants)])
-  const shin = merge([paint(CAP, xf([0, -0.225, 0], [0.155, 0.25, 0.17]), pants), paint(SHOE, xf([0, -0.45, 0.05]), SHOE_C)])
+  // an abaya (with a hijab): the leg parts become a wide, flowing robe down to the ankles
+  const robe = female && !!scarf
+  const thigh = merge([paint(CAP, xf([0, -0.225, 0], robe ? [0.3, 0.27, 0.29] : [0.19, 0.25, 0.2]), pants)])
+  const shin = merge([
+    paint(CAP, xf([0, robe ? -0.2 : -0.225, 0], robe ? [0.3, 0.27, 0.29] : [0.155, 0.25, 0.17]), pants),
+    paint(SHOE, xf([0, -0.45, 0.05]), SHOE_C),
+  ])
 
   // the far versions: every joint baked in a rest pose (hips at 0.9 standing, 0.5 seated)
   const far = (sit: boolean) => {

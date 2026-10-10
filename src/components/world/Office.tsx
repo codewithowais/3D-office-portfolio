@@ -317,7 +317,7 @@ export function Office() {
 
       {/* people with their own scripts */}
       <Person sample={reception} loop={TOUR_LEN} {...{ shirt: '#26302c', pants: '#1c1f1e', skin: '#e0b08c', hair: '#1c1714', female: true }} />
-      <Person sample={bossS} {...{ shirt: '#2a2f45', pants: '#1f2330', skin: '#eac1a1', hair: '#2a2a2a', female: true, scarf: '#9a2f55' }} scale={1.0} />
+      <Person sample={bossS} {...{ shirt: '#232840', pants: '#232840', skin: '#eac1a1', hair: '#2a2a2a', female: true, scarf: '#9a2f55' }} scale={1.0} />
     </StaticMerge>
   )
 }
