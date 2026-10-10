@@ -152,6 +152,48 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     armR.current!.rotation.x = ar
     armR.current!.rotation.z = arz
 
+    // emotes (player only): override limbs after the standard poses
+    const hp = hips.current!
+    hp.rotation.y = 0
+    hp.rotation.z = 0
+    armL.current!.rotation.z = 0
+    if (s.pose === 'dance') {
+      const b = Math.sin(t * 9)
+      hp.position.y = 0.9 + Math.abs(b) * 0.07
+      hp.rotation.y = Math.sin(t * 4.5) * 0.45
+      hp.rotation.z = Math.sin(t * 4.5) * 0.08
+      armR.current!.rotation.x = -2.4 + Math.sin(t * 9) * 0.5
+      armL.current!.rotation.x = -2.4 + Math.sin(t * 9 + Math.PI) * 0.5
+      armR.current!.rotation.z = -0.5
+      armL.current!.rotation.z = 0.5
+      legL.current!.rotation.x = Math.sin(t * 9) * 0.35
+      legR.current!.rotation.x = Math.sin(t * 9 + Math.PI) * 0.35
+      kneeL.current!.rotation.x = Math.max(0, -Math.sin(t * 9)) * 0.6
+      kneeR.current!.rotation.x = Math.max(0, Math.sin(t * 9)) * 0.6
+    } else if (s.pose === 'clap') {
+      const c = 0.5 + 0.5 * Math.sin(t * 15)
+      armR.current!.rotation.x = -1.3
+      armL.current!.rotation.x = -1.3
+      armR.current!.rotation.z = 0.35 - c * 0.5
+      armL.current!.rotation.z = -0.35 + c * 0.5
+    } else if (s.pose === 'cheer') {
+      hp.position.y = 0.9 + Math.abs(Math.sin(t * 8)) * 0.1
+      armR.current!.rotation.x = -2.9 + Math.sin(t * 8) * 0.2
+      armL.current!.rotation.x = -2.9 - Math.sin(t * 8) * 0.2
+      armR.current!.rotation.z = -0.35
+      armL.current!.rotation.z = 0.35
+    } else if (s.pose === 'bow') {
+      hp.rotation.x = 0.85
+      armR.current!.rotation.x = 0.2
+      armL.current!.rotation.x = 0.2
+    } else if (s.pose === 'flex') {
+      hp.position.y = 0.9 + Math.abs(Math.sin(t * 5)) * 0.03
+      armR.current!.rotation.x = -1.5
+      armL.current!.rotation.x = -1.5
+      armR.current!.rotation.z = -1.0
+      armL.current!.rotation.z = 1.0
+    }
+
     const sp = spray.current
     if (sp) {
       sp.visible = s.pose === 'water'

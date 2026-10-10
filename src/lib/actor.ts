@@ -1,6 +1,6 @@
 import { V3, clamp } from './math'
 
-export type Pose = 'stand' | 'sit' | 'type' | 'water' | 'wave' | 'talk' | 'listen' | 'sittalk' | 'sitlisten' | 'drink'
+export type Pose = 'stand' | 'sit' | 'type' | 'water' | 'wave' | 'talk' | 'listen' | 'sittalk' | 'sitlisten' | 'drink' | 'dance' | 'clap' | 'cheer' | 'bow' | 'flex'
 
 export interface Sample {
   x: number

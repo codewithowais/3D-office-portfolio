@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NPCS, fill } from '@/lib/dialogue'
 import { soccer } from '@/lib/soccer'
-import { SPEED_NAMES } from '@/lib/player'
+import { EMOTES, SPEED_NAMES } from '@/lib/player'
 import { PROGRESS_TOTAL, useStore } from '@/lib/store'
 import { talkable } from '@/lib/talkables'
 import NameGate from './NameGate'
@@ -75,6 +75,34 @@ function SpeedChip() {
   )
 }
 
+/** Emotes and jump: one tap each, also on the keyboard (shown on the buttons). */
+function EmoteMenu() {
+  const [open, setOpen] = useState(false)
+  const emote = useStore((s) => s.emote)
+  const hop = useStore((s) => s.hop)
+  return (
+    <div className="pointer-events-auto flex flex-col items-end gap-2">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="ui-glass ui-btn !rounded-full px-3 py-1.5 text-[12px] font-semibold text-[var(--ui-text)]">
+        😀 Emotes
+      </button>
+      {open && (
+        <div className="ui-glass ui-pop grid grid-cols-3 gap-1.5 rounded-2xl p-2 text-[12px] text-[var(--ui-text)]">
+          {EMOTES.map((m) => (
+            <button key={m.id} onClick={() => emote(m.id)} title={`${m.label} (${m.key})`} className="ui-focus flex cursor-pointer flex-col items-center rounded-xl px-2 py-1.5 hover:bg-[var(--ui-hover)]">
+              <span className="text-[18px]" aria-hidden>{m.icon}</span>
+              <span className="font-semibold">{m.label}</span>
+              <span className="text-[10px] text-[var(--ui-muted)]">{m.key}</span>
+            </button>
+          ))}
+          <button onClick={hop} title="Jump (Space)" className="ui-focus col-span-3 cursor-pointer rounded-xl px-2 py-1.5 font-semibold hover:bg-[var(--ui-hover)]">
+            ⬆ Jump <span className="text-[10px] text-[var(--ui-muted)]">Space</span>
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /** The football score while you're in the match. */
 function ScoreChip() {
   const score = useStore((s) => s.score)
@@ -104,6 +132,7 @@ function ProgressChip() {
   return (
     <div className="pointer-events-none absolute right-3 top-[calc(max(0.75rem,env(safe-area-inset-top))+54px)] z-10 flex flex-col items-end gap-2 sm:right-4 sm:top-[68px]">
       <SpeedChip />
+      <EmoteMenu />
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}

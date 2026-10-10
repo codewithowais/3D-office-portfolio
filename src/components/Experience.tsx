@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { receptionist, TOUR_LEN, visitor } from '@/lib/actors'
 import { clock } from '@/lib/clock'
 import { getDevice } from '@/lib/device'
-import { input, player } from '@/lib/player'
+import { EMOTES, input, player } from '@/lib/player'
 import { escort } from '@/lib/escort'
 import { soccer } from '@/lib/soccer'
 import { useStore } from '@/lib/store'
@@ -82,6 +82,17 @@ export default function Experience() {
       if (e.code === 'Space' && !st.talking && soccer.active) {
         e.preventDefault()
         soccer.kickRequest = true
+        return
+      }
+      if (e.code === 'Space' && !st.talking) {
+        e.preventDefault()
+        if (!e.repeat) st.hop()
+        return
+      }
+      const em = !st.talking && !e.repeat && !e.metaKey && !e.ctrlKey && EMOTES.find((m) => 'Key' + m.key === e.code)
+      if (em) {
+        e.preventDefault()
+        st.emote(em.id)
         return
       }
       if (st.talking) {

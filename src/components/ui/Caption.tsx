@@ -16,7 +16,7 @@ export default function Caption() {
         </p>
         <p className="ui-display text-[22px] leading-tight">{walk ? 'You are walking' : 'Explore freely'}</p>
         <p className={`mt-1 text-[12px] leading-snug text-[var(--ui-muted)] ${walk ? 'hidden sm:block' : ''}`}>
-          {walk ? 'W A S D or arrows to move · Shift for faster · R cycles Walk/Run/Sprint · Esc to stop' : 'Drag to orbit · scroll to zoom · right-drag to pan'}
+          {walk ? 'W A S D or arrows to move · Shift for faster · R speed · Space jump · G F C V B X emotes · Esc to stop' : 'Drag to orbit · scroll to zoom · right-drag to pan'}
         </p>
       </div>
     )

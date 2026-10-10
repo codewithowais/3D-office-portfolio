@@ -11,7 +11,7 @@ import { stopSoccer } from './soccer'
 import { TALKABLES, spotOf, talkable } from './talkables'
 import { ZONES, type Zone } from './zones'
 import { spawnFor } from './world'
-import { doPose, input, motion, player, resetPlayer, sitAt, standUp, teleport } from './player'
+import { EMOTES, doPose, jump, input, motion, player, resetPlayer, sitAt, standUp, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
@@ -115,6 +115,8 @@ interface State {
   setPlayerColor: (c: string) => void
   setSpeedLevel: (n: number) => void
   cycleSpeed: () => void
+  emote: (id: string) => void
+  hop: () => void
   mark: (kind: ProgressKind, id: string) => void
   setPlayerName: (name: string) => void
   skipName: () => void
@@ -265,6 +267,16 @@ export const useStore = create<State>((set, get) => ({
     set({ speedLevel: level })
   },
   cycleSpeed: () => get().setSpeedLevel((get().speedLevel + 1) % 3),
+  emote: (id) => {
+    const e = EMOTES.find((m) => m.id === id)
+    const st = get()
+    if (!e || !st.walk || st.talking || st.seated) return
+    doPose(e.id, worldClock.t, e.secs)
+  },
+  hop: () => {
+    const st = get()
+    if (st.walk && !st.talking && !st.seated) jump()
+  },
   setPlayerColor: (playerColor) => {
     saveColor(playerColor)
     set({ playerColor })

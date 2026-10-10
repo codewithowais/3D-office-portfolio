@@ -20,6 +20,34 @@ export const seat = { active: false, id: '', exit: [0, 0] as [number, number] }
 /** Timed one-shot poses (drinking coffee, watering a plant): `until` is a world-clock time. */
 export const action = { until: 0 }
 
+/** Emotes you can play on the spot; they last until you move (or for `secs`). */
+export const EMOTES = [
+  { id: 'wave', label: 'Wave', icon: '👋', key: 'G', secs: 3 },
+  { id: 'dance', label: 'Dance', icon: '🕺', key: 'F', secs: 1e6 },
+  { id: 'clap', label: 'Clap', icon: '👏', key: 'C', secs: 4 },
+  { id: 'cheer', label: 'Cheer', icon: '🙌', key: 'V', secs: 3.5 },
+  { id: 'bow', label: 'Bow', icon: '🙇', key: 'B', secs: 2.6 },
+  { id: 'flex', label: 'Flex', icon: '💪', key: 'X', secs: 4 },
+] as const
+export type EmoteId = (typeof EMOTES)[number]['id']
+
+/** Vertical velocity of a jump in progress. */
+const jumpState = { vy: 0 }
+
+export function jump() {
+  if (seat.active || player.y > 0.001) return
+  jumpState.vy = 5.4
+  action.until = 0
+  if (player.pose !== 'stand') player.pose = 'stand'
+}
+
+export function stepJump(dt: number) {
+  if (jumpState.vy === 0 && player.y <= 0) return
+  jumpState.vy -= 17 * dt
+  player.y = Math.max(0, player.y + jumpState.vy * dt)
+  if (player.y === 0) jumpState.vy = 0
+}
+
 export interface SeatSpec {
   x: number
   z: number
@@ -74,6 +102,7 @@ export function resetPlayer() {
  * Returns true if the player moved.
  */
 export function stepPlayer(fx: number, fz: number, dt: number) {
+  stepJump(dt)
   if (seat.active) {
     player.speed = 0
     return false
