@@ -5,7 +5,8 @@ import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import type { Sample } from '@/lib/actor'
 import { angleLerp, clamp, lerp } from '@/lib/math'
-import { SPH, mat, rbox } from './primitives'
+import { SPH, mat } from './primitives'
+import { VERTEX_MAT, getRig } from './PersonRig'
 
 export interface Look {
   shirt: string
@@ -24,11 +25,13 @@ interface Props extends Look {
   still?: boolean
   /** Wrap time so scripted actors loop in explore mode. */
   loop?: number
+  /** has a watering hose (guard, you): adds the spray particles */
+  sprays?: boolean
 }
 
-const CAP = new THREE.CapsuleGeometry(0.5, 1, 6, 12)
-const TORSO = rbox(0.5, 0.6, 0.28, 0.12)
-const SHOE = rbox(0.15, 0.09, 0.3, 0.04)
+/** Beyond this distance a person is drawn as a single static mesh; they switch back inside the nearer one. */
+const FAR2 = 42 * 42
+const NEAR2 = 34 * 34
 const SPRAY = Array.from({ length: 9 }, (_, i) => i)
 
 /**
@@ -36,10 +39,10 @@ const SPRAY = Array.from({ length: 9 }, (_, i) => i)
  * Poses: walk/run (from speed), sit, type, water, wave, talk/listen (standing or seated). Everything is driven by the world clock,
  * so pausing the tour freezes the animation too.
  */
-export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop, still }: Props) {
+export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14', scale = 1, loop, still, sprays }: Props) {
   const root = useRef<THREE.Group>(null)
   const hips = useRef<THREE.Group>(null)
-  const torso = useRef<THREE.Mesh>(null)
+  const lodMesh = useRef<THREE.Mesh>(null)
   const armL = useRef<THREE.Group>(null)
   const armR = useRef<THREE.Group>(null)
   const legL = useRef<THREE.Group>(null)
@@ -47,12 +50,10 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
   const kneeL = useRef<THREE.Group>(null)
   const kneeR = useRef<THREE.Group>(null)
   const spray = useRef<THREE.Group>(null)
-  const st = useRef({ lastT: -1, heading: 0, phase: [...shirt].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 6, sit: 0, init: false })
+  const st = useRef({ lastT: -1, heading: 0, phase: [...shirt].reduce((a, ch) => a + ch.charCodeAt(0), 0) % 6, sit: 0, init: false, far: false, farSeated: false })
 
-  const m = useMemo(
-    () => ({ shirt: mat(shirt), pants: mat(pants), skin: mat(skin), hair: mat(hair), shoe: mat('#2a2622', { rough: 0.5 }), eye: mat('#1a1512'), water: mat('#bfe6f2', { opacity: 0.8 }) }),
-    [shirt, pants, skin, hair],
-  )
+  const rig = useMemo(() => getRig(shirt, pants, skin, hair), [shirt, pants, skin, hair])
+  const water = useMemo(() => mat('#bfe6f2', { opacity: 0.8 }), [])
 
   useFrame(({ camera }) => {
     const g = root.current
@@ -72,6 +73,26 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     else k.heading = angleLerp(k.heading, s.heading, 1 - Math.exp(-dt * 10))
     k.init = true
     g.rotation.y = k.heading
+
+    // far away: one static mesh, no limb animation
+    const d2 = camera.position.distanceToSquared(g.position)
+    const wasFar = k.far
+    k.far = wasFar ? d2 > NEAR2 : d2 > FAR2
+    const lod = lodMesh.current
+    if (k.far && lod) {
+      const seatedNow = s.pose === 'sit' || s.pose === 'type' || s.pose === 'sittalk' || s.pose === 'sitlisten'
+      if (!wasFar || seatedNow !== k.farSeated) {
+        k.farSeated = seatedNow
+        lod.geometry = seatedNow ? rig.farSit : rig.farStand
+      }
+      lod.visible = true
+      hips.current!.visible = false
+      return
+    }
+    if (lod && lod.visible) {
+      lod.visible = false
+      hips.current!.visible = true
+    }
 
     const seated = s.pose === 'sit' || s.pose === 'type' || s.pose === 'sittalk' || s.pose === 'sitlisten'
     const sd = moving ? dt : 0
@@ -130,7 +151,6 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     armL.current!.rotation.x = al
     armR.current!.rotation.x = ar
     armR.current!.rotation.z = arz
-    torso.current!.scale.y = 0.62 + Math.sin(t * 2) * 0.006
 
     const sp = spray.current
     if (sp) {
@@ -145,46 +165,35 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
   })
 
   return (
-    <group ref={root} scale={scale}>
+    <group ref={root} scale={scale} userData={{ dynamic: true }}>
+      <mesh ref={lodMesh} geometry={rig.farStand} material={VERTEX_MAT} visible={false} />
       <group ref={hips} position={[0, 0.9, 0]}>
-        <mesh ref={torso} position={[0, 0.31, 0]} scale={[1, 0.62 / 0.6, 1]} castShadow geometry={TORSO} material={m.shirt} />
-        <mesh position={[0, 0.03, 0]} scale={[0.46, 0.12, 0.26]} castShadow geometry={CAP} material={m.pants} rotation={[0, 0, Math.PI / 2]} />
-        {/* neck + head */}
-        <mesh position={[0, 0.66, 0]} scale={[0.09, 0.07, 0.09]} geometry={CAP} material={m.skin} />
-        <mesh position={[0, 0.8, 0]} scale={[0.155, 0.17, 0.16]} castShadow geometry={SPH} material={m.skin} />
-        <mesh position={[0, 0.855, -0.015]} scale={[0.17, 0.135, 0.175]} geometry={SPH} material={m.hair} />
-        <mesh position={[-0.055, 0.81, 0.138]} scale={0.017} geometry={SPH} material={m.eye} />
-        <mesh position={[0.055, 0.81, 0.138]} scale={0.017} geometry={SPH} material={m.eye} />
-        {/* arms */}
+        <mesh geometry={rig.body} material={VERTEX_MAT} castShadow />
         <group ref={armL} position={[-0.325, 0.56, 0]}>
-          <mesh position={[0, -0.27, 0]} scale={[0.115, 0.3, 0.115]} castShadow geometry={CAP} material={m.shirt} />
-          <mesh position={[0, -0.58, 0]} scale={0.062} geometry={SPH} material={m.skin} />
+          <mesh geometry={rig.arm} material={VERTEX_MAT} castShadow />
         </group>
         <group ref={armR} position={[0.325, 0.56, 0]}>
-          <mesh position={[0, -0.27, 0]} scale={[0.115, 0.3, 0.115]} castShadow geometry={CAP} material={m.shirt} />
-          <mesh position={[0, -0.58, 0]} scale={0.062} geometry={SPH} material={m.skin} />
+          <mesh geometry={rig.arm} material={VERTEX_MAT} castShadow />
         </group>
-        {/* legs */}
         <group ref={legL} position={[-0.12, 0, 0]}>
-          <mesh position={[0, -0.225, 0]} scale={[0.19, 0.25, 0.2]} castShadow geometry={CAP} material={m.pants} />
+          <mesh geometry={rig.thigh} material={VERTEX_MAT} castShadow />
           <group ref={kneeL} position={[0, -0.45, 0]}>
-            <mesh position={[0, -0.225, 0]} scale={[0.155, 0.25, 0.17]} castShadow geometry={CAP} material={m.pants} />
-            <mesh position={[0, -0.45, 0.05]} geometry={SHOE} material={m.shoe} castShadow />
+            <mesh geometry={rig.shin} material={VERTEX_MAT} castShadow />
           </group>
         </group>
         <group ref={legR} position={[0.12, 0, 0]}>
-          <mesh position={[0, -0.225, 0]} scale={[0.19, 0.25, 0.2]} castShadow geometry={CAP} material={m.pants} />
+          <mesh geometry={rig.thigh} material={VERTEX_MAT} castShadow />
           <group ref={kneeR} position={[0, -0.45, 0]}>
-            <mesh position={[0, -0.225, 0]} scale={[0.155, 0.25, 0.17]} castShadow geometry={CAP} material={m.pants} />
-            <mesh position={[0, -0.45, 0.05]} geometry={SHOE} material={m.shoe} castShadow />
+            <mesh geometry={rig.shin} material={VERTEX_MAT} castShadow />
           </group>
         </group>
-        {/* hose spray (only visible while watering) */}
-        <group ref={spray} visible={false}>
-          {SPRAY.map((i) => (
-            <mesh key={i} scale={0.035} geometry={SPH} material={m.water} />
-          ))}
-        </group>
+        {sprays && (
+          <group ref={spray} visible={false}>
+            {SPRAY.map((i) => (
+              <mesh key={i} scale={0.035} geometry={SPH} material={water} />
+            ))}
+          </group>
+        )}
       </group>
     </group>
   )
