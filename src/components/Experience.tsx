@@ -59,6 +59,9 @@ export default function Experience() {
     const down = (e: KeyboardEvent) => {
       const st = useStore.getState()
       if (typing(e) || !st.walk) return
+      // Trust the modifier state on every key event: a Shift press that was swallowed (focus elsewhere,
+      // dialogue/seated branches, Shift held before a key) would otherwise leave Run stuck off.
+      input.run = e.shiftKey
       if (e.code === 'Escape') return st.talking ? st.endTalk() : st.seated ? st.standUp() : st.stopWalk()
       if (st.seated && !st.talking && (e.code === 'KeyE' || e.code === 'Space' || KEYS[e.code])) {
         e.preventDefault()
@@ -115,6 +118,7 @@ export default function Experience() {
     const up = (e: KeyboardEvent) => {
       const k = KEYS[e.code]
       if (k) input[k] = false
+      input.run = e.shiftKey
     }
     const clear = () => Object.assign(input, { f: false, b: false, l: false, r: false, run: false })
     window.addEventListener('keydown', down)

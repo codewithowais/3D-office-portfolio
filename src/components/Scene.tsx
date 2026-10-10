@@ -50,6 +50,13 @@ function Director() {
     gl.shadowMap.needsUpdate = (frame.current++ & 1) === 0
     const dt = Math.min(delta, 0.05)
     const st = useStore.getState()
+    // running widens the view a little so speed is felt
+    const pc = camera as THREE.PerspectiveCamera
+    const fovT = st.walk && !st.talking ? 38 + Math.min(1, Math.max(0, (player.speed - 2.3) / 6.2)) * 9 : 38
+    if (Math.abs(pc.fov - fovT) > 0.02) {
+      pc.fov += (fovT - pc.fov) * (1 - Math.exp(-dt * 6))
+      pc.updateProjectionMatrix()
+    }
     if (!st.ready) {
       st.setReady()
       performance.mark('office-ready')
@@ -125,7 +132,7 @@ function Director() {
           if (input.f || input.b || input.l || input.r) st.standUp()
           if (st.nearby) st.setNearby(null)
         } else {
-          stepPlayer(fx, fz, dt)
+          stepPlayer(fx, fz, Math.min(delta, 0.12))
           // one-shot poses (coffee, watering, bell) end after a few seconds, or as soon as you walk off
           if (action.until && (clock.t >= action.until || player.speed > 0.1)) {
             action.until = 0

@@ -98,14 +98,15 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     const sd = moving ? dt : 0
     k.sit += ((seated ? 1 : 0) - k.sit) * clamp(sd * 8)
     const run = s.speed > 2.6
-    const amp = clamp(s.speed / 1.5) * (run ? 0.72 : 0.55)
-    k.phase += s.speed * sd * (run ? 2.3 : 3.2)
+    const sprint = s.speed > 6.5
+    const amp = clamp(s.speed / 1.5) * (sprint ? 1.0 : run ? 0.8 : 0.55)
+    k.phase += s.speed * sd * (sprint ? 2.3 : run ? 2.6 : 3.2)
     const ph = k.phase
     const sw = Math.sin(ph) * amp
     const sw2 = Math.sin(ph + Math.PI) * amp
 
     hips.current!.position.y = 0.9 - 0.4 * k.sit + (s.speed > 0.1 ? Math.abs(Math.cos(ph)) * 0.035 * (run ? 2 : 1) : 0)
-    hips.current!.rotation.x = s.speed > 5.5 ? 0.3 : run ? 0.16 : 0 // sprinting leans further into it
+    hips.current!.rotation.x = sprint ? 0.38 : run ? 0.16 : 0 // sprinting leans further into it
     legL.current!.rotation.x = lerp(sw, -Math.PI / 2, k.sit)
     legR.current!.rotation.x = lerp(sw2, -Math.PI / 2, k.sit)
     kneeL.current!.rotation.x = lerp(Math.max(0, -Math.sin(ph)) * amp * 1.3, Math.PI / 2, k.sit)
@@ -115,8 +116,8 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     let ar = -sw2 * 0.9
     let arz = 0
     if (run) {
-      al -= 0.5
-      ar -= 0.5
+      al -= sprint ? 0.9 : 0.6
+      ar -= sprint ? 0.9 : 0.6
     }
     if (s.pose === 'type') {
       al = -1.15 + Math.sin(t * 13) * 0.05
