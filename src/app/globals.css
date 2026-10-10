@@ -1,18 +1,210 @@
 @import "tailwindcss";
 
-:root {
+/* ------------------------------------------------------------------
+   Design tokens. The overlay wrapper carries data-ui-theme="day|golden|night"
+   (driven by the 3D "Time" theme in the store); every UI colour below comes
+   from these variables. Contrast notes are against --ui-surface.
+   ------------------------------------------------------------------ */
+:root,
+[data-ui-theme='day'] {
   --background: #dcecf4;
-  --foreground: #14324b;
+  --foreground: #0f2740;
+  --ui-surface: rgb(255 255 255 / 0.78);
+  --ui-surface-strong: rgb(255 255 255 / 0.94);
+  --ui-border: rgb(255 255 255 / 0.85);
+  --ui-border-inner: rgb(15 39 64 / 0.1);
+  --ui-shadow: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 10px 32px -8px rgb(20 50 80 / 0.28), 0 2px 6px rgb(20 50 80 / 0.08);
+  --ui-text: #0f2740; /* 14:1 */
+  --ui-muted: #3b5468; /* 7.4:1 */
+  --ui-faint: #566d80; /* 5:1 */
+  --ui-accent: #0a7a82; /* 4.9:1 */
+  --ui-accent-soft: rgb(10 122 130 / 0.12);
+  --ui-hover: rgb(15 39 64 / 0.06);
+  --ui-press: rgb(15 39 64 / 0.12);
+  --ui-primary-bg: #0f2740;
+  --ui-primary-hover: #1a3d61;
+  --ui-primary-fg: #ffffff;
+  --ui-ring: #0a7a82;
+  --ui-glow: rgb(10 122 130 / 0);
+  --ui-splash-a: #eaf5f8;
+  --ui-splash-b: #a9dcf5;
+  --ui-warn: #a5380f;
+  color-scheme: light;
+}
+[data-ui-theme='golden'] {
+  --background: #ffd9a6;
+  --foreground: #3a1f10;
+  --ui-surface: rgb(255 243 228 / 0.8);
+  --ui-surface-strong: rgb(255 246 234 / 0.95);
+  --ui-border: rgb(255 226 190 / 0.9);
+  --ui-border-inner: rgb(90 40 10 / 0.12);
+  --ui-shadow: 0 1px 0 rgb(255 240 220 / 0.8) inset, 0 10px 32px -8px rgb(120 50 10 / 0.35), 0 2px 6px rgb(120 50 10 / 0.12);
+  --ui-text: #3a1a0a; /* 12.5:1 */
+  --ui-muted: #6a412a; /* 7:1 */
+  --ui-faint: #7d553a; /* 5.4:1 */
+  --ui-accent: #a83d14; /* 5.6:1 */
+  --ui-accent-soft: rgb(176 67 26 / 0.13);
+  --ui-hover: rgb(90 40 10 / 0.07);
+  --ui-press: rgb(90 40 10 / 0.14);
+  --ui-primary-bg: #7d3410;
+  --ui-primary-hover: #94421a;
+  --ui-primary-fg: #fff6ea;
+  --ui-ring: #a83d14;
+  --ui-glow: rgb(255 140 70 / 0.18);
+  --ui-splash-a: #ffd9a6;
+  --ui-splash-b: #ff9f7a;
+  --ui-warn: #a5300c;
+  color-scheme: light;
+}
+[data-ui-theme='night'] {
+  --background: #0e1f4a;
+  --foreground: #eef2ff;
+  --ui-surface: rgb(12 20 46 / 0.76);
+  --ui-surface-strong: rgb(16 26 58 / 0.94);
+  --ui-border: rgb(140 170 255 / 0.22);
+  --ui-border-inner: rgb(160 185 255 / 0.14);
+  --ui-shadow: 0 1px 0 rgb(180 200 255 / 0.1) inset, 0 12px 36px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(0 0 0 / 0.2);
+  --ui-text: #eef2ff; /* 15:1 */
+  --ui-muted: #b4c0e2; /* 9:1 */
+  --ui-faint: #94a3cf; /* 6.4:1 */
+  --ui-accent: #7ad7ff; /* 10:1 */
+  --ui-accent-soft: rgb(122 215 255 / 0.14);
+  --ui-hover: rgb(160 185 255 / 0.1);
+  --ui-press: rgb(160 185 255 / 0.18);
+  --ui-primary-bg: #7ad7ff;
+  --ui-primary-hover: #a3e4ff;
+  --ui-primary-fg: #06122b; /* 11:1 */
+  --ui-ring: #7ad7ff;
+  --ui-glow: rgb(122 215 255 / 0.35);
+  --ui-splash-a: #040a22;
+  --ui-splash-b: #1b2b58;
+  --ui-warn: #ffb08f;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
+.ui-display {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* ---- surfaces ---- */
+.ui-glass {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow);
+  color: var(--ui-text);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* ---- buttons ---- */
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+.ui-btn:hover { background: var(--ui-surface-strong); transform: translateY(-1px); }
+.ui-btn:active { transform: translateY(0) scale(0.97); background: var(--ui-surface-strong); }
+.ui-btn-primary {
+  background: var(--ui-primary-bg);
+  color: var(--ui-primary-fg);
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: var(--ui-shadow), 0 0 22px -2px var(--ui-glow);
+}
+.ui-btn-primary:hover,
+.ui-btn-primary:active { background: var(--ui-primary-hover); }
+
+/* ---- list rows ---- */
+.ui-row { transition: background-color 0.15s ease, color 0.15s ease; color: var(--ui-muted); }
+.ui-row:hover { background: var(--ui-hover); color: var(--ui-text); }
+.ui-row:active { background: var(--ui-press); }
+.ui-row[aria-current='true'] { background: var(--ui-accent-soft); color: var(--ui-text); font-weight: 600; }
+
+/* ---- selects ---- */
+.ui-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  color: var(--ui-text);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.35rem 1.5rem 0.35rem 0.25rem;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.ui-select option { color: #0f2740; background: #fff; }
+.ui-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.15rem 0 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-inner);
+  background: var(--ui-hover);
+  color: var(--ui-muted);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.ui-select-wrap:hover { border-color: var(--ui-accent); }
+.ui-select-wrap:focus-within { outline: 2px solid var(--ui-ring); outline-offset: 2px; }
+.ui-select-chev { position: absolute; right: 0.5rem; pointer-events: none; color: var(--ui-faint); }
+@media (pointer: coarse) { .ui-select { font-size: 16px; } }
+
+/* ---- focus ---- */
+.ui-focus:focus-visible,
+.ui-btn:focus-visible,
+.ui-row:focus-visible {
+  outline: 2px solid var(--ui-ring);
+  outline-offset: 2px;
+}
+
+/* ---- motion ---- */
 @keyframes caption-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
   to { opacity: 1; transform: none; }
 }
-.caption-in { animation: caption-in 0.6s ease both; }
+.caption-in { animation: caption-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes ui-pop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.ui-pop { animation: ui-pop 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: top left; }
+@keyframes ui-toast {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.ui-toast { animation: ui-toast 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes ui-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--ui-accent-soft); }
+  50% { box-shadow: 0 0 0 5px transparent; }
+}
+.ui-dot { animation: ui-pulse 2.4s ease-in-out infinite; }
+@keyframes ui-load {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(260%); }
+}
+.ui-load-bar { animation: ui-load 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .caption-in, .ui-pop, .ui-toast, .ui-dot, .ui-load-bar { animation: none; }
+  .ui-btn, .ui-row, .ui-glass { transition: none; }
+  .ui-btn:hover, .ui-btn:active { transform: none; }
+}
