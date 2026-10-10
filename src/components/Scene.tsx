@@ -44,6 +44,7 @@ function Director() {
     if (!st.ready) {
       st.setReady()
       performance.mark('office-ready')
+      requestAnimationFrame(() => performance.mark('office-first-frame'))
     }
     if (!st.walk) last.current.init = false
 
