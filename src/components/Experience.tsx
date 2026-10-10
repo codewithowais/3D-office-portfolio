@@ -59,7 +59,12 @@ export default function Experience() {
     const down = (e: KeyboardEvent) => {
       const st = useStore.getState()
       if (typing(e) || !st.walk) return
-      if (e.code === 'Escape') return st.talking ? st.endTalk() : st.stopWalk()
+      if (e.code === 'Escape') return st.talking ? st.endTalk() : st.seated ? st.standUp() : st.stopWalk()
+      if (st.seated && !st.talking && (e.code === 'KeyE' || e.code === 'Space' || KEYS[e.code])) {
+        e.preventDefault()
+        st.standUp()
+        return
+      }
       if (e.code === 'KeyE') {
         // E starts a conversation, and while talking picks the first answer ("continue")
         e.preventDefault()

@@ -13,6 +13,7 @@ import { CAR_COLORS, MovingCar, ParkedCar } from './Car'
 import { Ball, BOX, Box, Cyl, Floor, Instanced, Sign, SPH, mat } from './primitives'
 import { M } from './materials'
 import { soccer } from '@/lib/soccer'
+import { useStore } from '@/lib/store'
 import { Chat } from './Chat'
 import { TalkMarkers } from './TalkMarkers'
 import { netTexture } from './textures'
@@ -236,6 +237,7 @@ function Parking() {
 function PlayerAvatar() {
   const ring = useRef<THREE.Mesh>(null)
   const sample = useMemo(() => () => player, [])
+  const color = useStore((s) => s.playerColor)
   useFrame(() => {
     const r = ring.current
     if (!r) return
@@ -245,7 +247,7 @@ function PlayerAvatar() {
   })
   return (
     <>
-      <Person sample={sample} shirt="#ff6f59" pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
+      <Person sample={sample} shirt={color} pants="#14324b" skin="#d9a77f" hair="#2a1d14" />
       <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
         <ringGeometry args={[0.62, 0.78, 40]} />
         <meshBasicMaterial color="#17e0d6" transparent opacity={0.9} depthWrite={false} toneMapped={false} />

@@ -109,6 +109,10 @@ export function Person({ sample, shirt, pants, skin = '#d9a77f', hair = '#2a1d14
     } else if (s.pose === 'wave') {
       ar = -2.55 + Math.sin(t * 7) * 0.22
       arz = -0.1
+    } else if (s.pose === 'drink') {
+      // cup raised to the mouth, a little tilt every now and then
+      ar = -2.15 + Math.sin(t * 2.2) * 0.12
+      al = -0.2
     } else if (s.pose === 'talk') {
       // speaking: both hands gesture, out of phase
       ar = -0.95 + Math.sin(t * 4.3 + k.phase) * 0.5

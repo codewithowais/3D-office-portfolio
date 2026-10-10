@@ -11,7 +11,7 @@ import { useStore } from '@/lib/store'
 import { useTheme } from '../Atmosphere'
 import { Person } from './Person'
 import { Art, Chair, Corkboard, Monitor, Plant, Shelf, Sitter, Sofa, Workstation } from './Furniture'
-import { Box, Cyl, Floor, RBox, Sign, mat } from './primitives'
+import { Ball, Box, Cyl, Floor, RBox, Sign, mat } from './primitives'
 import { plankTexture } from './textures'
 
 interface Gap {
@@ -117,6 +117,9 @@ function Reception() {
         <RBox p={[0, 0.02, 0]} s={[0.22, 0.03, 0.16]} c="#1d2321" />
         <RBox p={[0, 0.3, 0]} s={[0.62, 0.38, 0.035]} c="#1d2321" />
       </group>
+      {/* service bell */}
+      <Cyl p={[-5.9, 1.12, 8.9]} rad={0.09} h={0.04} c="#e0ad6f" />
+      <Ball p={[-5.9, 1.17, 8.9]} rad={0.065} sy={0.8} c="#f3d9a0" />
       <Chair p={[-8, 0, 6.8]} c="#2a5d9f" />
       <Chair p={[-15.5, 0, 11.2]} r={Math.PI / 2} c="#ee9a5a" />
       <Chair p={[-15.5, 0, 12.8]} r={Math.PI / 2} c="#ee9a5a" />
@@ -231,6 +234,11 @@ function Lounge() {
       <Cyl p={[15.8, 0.15, 9.2]} rad={0.1} h={0.3} c="#3a2a1e" />
       <Sitter p={[15.2, 0.02, 12.7]} r={Math.PI} i={44} pose="sit" />
       <Sitter p={[18.6, 0.02, 8.3]} r={-Math.PI / 2} i={46} pose="sit" />
+      {/* coffee station */}
+      <RBox p={[12.9, 0.45, 11.6]} s={[0.7, 0.9, 0.5]} c="#e6b980" />
+      <RBox p={[12.9, 1.12, 11.6]} s={[0.4, 0.46, 0.34]} c="#232a27" />
+      <Box p={[12.9, 1.2, 11.77]} s={[0.1, 0.06, 0.02]} m={mat('#ff4a3a', { emissive: '#ff2a1a', ei: 1.5 })} cast={false} />
+      <Cyl p={[12.9, 0.95, 11.78]} rad={0.04} h={0.08} c="#ffffff" />
       <Plant p={[13.2, 0.02, 5]} s={1.3} palm />
       <Plant p={[19, 0.02, 5]} s={1.1} />
       <Plant p={[19, 0.02, 13]} s={1} />
