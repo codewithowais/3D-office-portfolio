@@ -23,7 +23,7 @@ export interface Option {
   /** open a link (new tab, or mail client for mailto:) and stay in the conversation */
   href?: string
   /** special actions */
-  action?: 'askName'
+  action?: 'askName' | 'escort'
 }
 
 export interface Node {
@@ -151,6 +151,7 @@ export const NPCS: Record<string, Npc> = {
         options: [
           { label: 'Who is Owais?', next: 'who' },
           { label: 'Is he available to hire?', next: 'hire' },
+          { label: 'Show me around the office', action: 'escort' },
           { label: 'Take me somewhere', next: 'go' },
           { label: 'Let me tell you my name', action: 'askName' },
           { label: 'Thanks, bye!' },
@@ -307,6 +308,48 @@ export const NPCS: Record<string, Npc> = {
       },
       gulf: {
         text: "Yes: UAE and Saudi Arabia are both on the table, with visa sponsorship welcome and about 30 days' notice. He's also happy to work fully remote.",
+        options: [back('hi')],
+      },
+    },
+  },
+
+  /* ---------------- Pitch-side: they get you into the game ---------------- */
+  bilal: {
+    id: 'bilal',
+    name: 'Bilal',
+    role: 'Football fan',
+    accent: '#14324b',
+    nodes: {
+      hi: {
+        text: `Hey {name}! Red is a player short today. Why don't you jump in? Just walk onto the pitch.`,
+        options: [{ label: 'How do I play?', next: 'how' }, { label: "Who's winning?", next: 'score' }, bye],
+      },
+      how: {
+        text: 'Run into the ball to dribble it. When you are close, press E (or tap the Kick button) to shoot. You play for red and attack the left goal, and the shot bends towards it if you are roughly facing it.',
+        options: [back('hi')],
+      },
+      score: {
+        text: "Hard to say, it changes every minute! Step onto the pitch and a goal flashes up whenever somebody scores.",
+        options: [back('hi')],
+      },
+    },
+  },
+  hira: {
+    id: 'hira',
+    name: 'Hira',
+    role: 'Football fan',
+    accent: '#d9568f',
+    nodes: {
+      hi: {
+        text: `Hi {name}! Watching the match with Bilal. The red team passes to you if you stand in space.`,
+        options: [{ label: 'Any tips?', next: 'tips' }, { label: 'Is the office worth visiting?', next: 'office' }, bye],
+      },
+      tips: {
+        text: 'Keep moving and the others will pass to you. The goal in front of you is the left one. Hold Shift to run faster.',
+        options: [back('hi')],
+      },
+      office: {
+        text: "Definitely. Go in through the gate and ask Priya at reception to show you around. She even waits if you stop to look at things.",
         options: [back('hi')],
       },
     },

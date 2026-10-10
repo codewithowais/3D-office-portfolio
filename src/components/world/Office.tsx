@@ -3,7 +3,8 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
-import { boss, receptionist } from '@/lib/actors'
+import { boss } from '@/lib/actors'
+import { receptionistSample } from '@/lib/escort'
 import { TOUR_LEN, doorAngle } from '@/lib/tour'
 import { BRAND, C, WALLS } from '@/lib/world'
 import { useStore } from '@/lib/store'
@@ -204,7 +205,7 @@ function Meeting() {
         <group key={i}>
           <Chair p={[x, 0, 7.55]} r={0} c="#2a5d9f" />
           <Chair p={[x, 0, 10.45]} r={Math.PI} c="#2a5d9f" />
-          <Sitter p={[x, 0, 7.55]} i={30 + i} pose="sit" />
+          {i !== 1 && <Sitter p={[x, 0, 7.55]} i={30 + i} pose="sit" />}
           {i !== 1 && <Sitter p={[x, 0, 10.45]} r={Math.PI} i={34 + i} pose="sit" />}
         </group>
       ))}
@@ -272,7 +273,7 @@ export function Office() {
   // every light costs every lit pixel, so weaker settings get fewer of them
   const lights = quality === 'High' ? INTERIOR_LIGHTS : quality === 'Medium' ? INTERIOR_LIGHTS.filter((_, i) => i % 2 === 0) : []
   const corridor = useFloor(6, 28, '#dfe3e6')
-  const reception = useMemo(() => (t: number) => receptionist.sample(t), [])
+  const reception = receptionistSample
   const bossS = useMemo(() => (t: number) => boss.sample(t), [])
   return (
     <group>

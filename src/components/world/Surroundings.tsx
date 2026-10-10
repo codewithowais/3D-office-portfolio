@@ -12,6 +12,8 @@ import { Person } from './Person'
 import { CAR_COLORS, MovingCar, ParkedCar } from './Car'
 import { Ball, BOX, Box, Cyl, Floor, Instanced, Sign, SPH, mat } from './primitives'
 import { M } from './materials'
+import { soccer } from '@/lib/soccer'
+import { Chat } from './Chat'
 import { TalkMarkers } from './TalkMarkers'
 import { netTexture } from './textures'
 
@@ -147,14 +149,22 @@ function Ring({ p, r, w = 0.12 }: { p: V3; r: number; w?: number }) {
   )
 }
 
+const BALL_TMP: V3 = [0, 0, 0]
+
 function Pitch() {
   const line = mat('#ffffff')
   const ball = useRef<THREE.Mesh>(null)
-  const tmp = useMemo<V3>(() => [0, 0, 0], [])
   useFrame(() => {
-    ballAt(clock.t, tmp)
-    ball.current?.position.set(tmp[0], tmp[1], tmp[2])
+    const m = ball.current
+    if (!m) return
+    // the scripted ambient match, until you step onto the pitch and the real game takes over
+    if (soccer.active) m.position.set(soccer.ball.x, soccer.ball.y, soccer.ball.z)
+    else {
+      ballAt(clock.t, BALL_TMP)
+      m.position.set(BALL_TMP[0], BALL_TMP[1], BALL_TMP[2])
+    }
   })
+  const samplers = useMemo(() => players.map((pl, i) => (t: number) => (soccer.active ? soccer.samples[i] : pl.sample(t))), [])
   const cx = -41
   const L = (x0: number, x1: number, z0: number, z1: number) => <Floor x0={x0} x1={x1} z0={z0} z1={z1} y={0.03} m={line} />
   const kits = ['#2a62d6', '#2a62d6', '#2a62d6', '#ff6f59', '#ff6f59', '#ff6f59']
@@ -180,7 +190,7 @@ function Pitch() {
       <Goal p={[-30, 0, 0]} r={-Math.PI / 2} />
       <mesh ref={ball} scale={0.22} castShadow geometry={SPH} material={mat('#ffffff')} />
       {players.map((pl, i) => (
-        <Person key={i} sample={pl.sample} shirt={kits[i]} pants="#f4f6f8" skin={['#e0b08c', '#8d5a3b', '#c68e69'][i % 3]} hair="#1c1714" />
+        <Person key={i} sample={samplers[i]} shirt={kits[i]} pants="#f4f6f8" skin={['#e0b08c', '#8d5a3b', '#c68e69'][i % 3]} hair="#1c1714" />
       ))}
       {/* benches + trees */}
       <Box p={[-41, 0.25, -15.6]} s={[3, 0.1, 0.5]} c="#e0ad6f" />
@@ -264,6 +274,7 @@ export function Surroundings() {
       <MovingCar sample={carSample} loop={TOUR_LEN} color="#0e8f93" />
       <PlayerAvatar />
       <TalkMarkers />
+      <Chat />
       <Person sample={jogger.sample} shirt="#ff6f59" pants="#1f2429" skin="#c68e69" hair="#151515" />
       <Pitch />
       <Parking />

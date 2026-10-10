@@ -1,4 +1,5 @@
 import type { Pose, Sample } from './actor'
+import { receptionist, TOUR_LEN } from './actors'
 
 /**
  * Priya's guided tour. She walks you through the office, stopping to tell you about each part, waits
@@ -128,4 +129,9 @@ export function updateEscort(dt: number, player: { x: number; z: number }) {
     escort.timer = 0
     escort.i++
   }
+}
+
+/** Where Priya is right now: the scripted tour actor, or the live guide while she is escorting. */
+export function receptionistSample(t: number): Sample {
+  return escort.state === 'idle' ? receptionist.sample(t % TOUR_LEN) : escort.sample
 }

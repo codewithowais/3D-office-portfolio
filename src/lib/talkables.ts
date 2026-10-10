@@ -1,4 +1,5 @@
-import { boss, guard, receptionist, TOUR_LEN, visitor } from './actors'
+import { boss, guard, TOUR_LEN, visitor } from './actors'
+import { receptionistSample } from './escort'
 
 export interface Spot {
   x: number
@@ -42,7 +43,7 @@ function fixed(id: string, x: number, z: number, marker = 2.0): Talkable {
 
 /** Everyone you can speak to, and where they are right now. Seated staff use their desk positions. */
 export const TALKABLES: Talkable[] = [
-  actor('receptionist', receptionist),
+  actor('receptionist', { sample: receptionistSample }),
   actor('guard', guard),
   actor('visitor', visitor),
   actor('boss', boss, 2.0),
@@ -51,6 +52,8 @@ export const TALKABLES: Talkable[] = [
   fixed('leo', 7, -3.55),
   fixed('nora', 4.9, 7.55),
   fixed('omar', 15.2, 12.7),
+  fixed('bilal', -41, -16.9, 2.35),
+  fixed('hira', -39.5, -16.9, 2.35),
 ]
 
 export const TALK_RANGE = 2.7
