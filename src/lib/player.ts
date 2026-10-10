@@ -9,11 +9,58 @@ export const SPAWN = { x: 0, z: 25, heading: Math.PI }
 /** Held keys / on-screen pad directions. */
 export const input = { f: false, b: false, l: false, r: false, run: false }
 
+/** Sitting state: while active the player can't walk until they stand up. */
+export const seat = { active: false, id: '', exit: [0, 0] as [number, number] }
+/** Timed one-shot poses (drinking coffee, watering a plant): `until` is a world-clock time. */
+export const action = { until: 0 }
+
+export interface SeatSpec {
+  x: number
+  z: number
+  heading: number
+  /** shift the body down for low seats such as a bench */
+  y?: number
+  exit: [number, number]
+  pose?: 'sit' | 'type'
+}
+
+export function sitAt(id: string, s: SeatSpec) {
+  player.x = s.x
+  player.z = s.z
+  player.y = s.y ?? 0
+  player.heading = s.heading
+  player.speed = 0
+  player.pose = s.pose ?? 'sit'
+  seat.active = true
+  seat.id = id
+  seat.exit = s.exit
+}
+
+export function standUp() {
+  if (!seat.active) return
+  seat.active = false
+  player.x = seat.exit[0]
+  player.z = seat.exit[1]
+  player.y = 0
+  player.pose = 'stand'
+  resolve(player, 0.38)
+}
+
+/** Play a pose for a few seconds, then go back to standing. */
+export function doPose(pose: Sample['pose'], now: number, seconds: number) {
+  player.pose = pose
+  action.until = now + seconds
+}
+
 export function resetPlayer() {
   player.x = SPAWN.x
   player.z = SPAWN.z
   player.heading = SPAWN.heading
   player.speed = 0
+  player.y = 0
+  player.pose = 'stand'
+  seat.active = false
+  action.until = 0
 }
 
 /**
@@ -21,6 +68,10 @@ export function resetPlayer() {
  * Returns true if the player moved.
  */
 export function stepPlayer(fx: number, fz: number, dt: number) {
+  if (seat.active) {
+    player.speed = 0
+    return false
+  }
   const fwd = (input.f ? 1 : 0) - (input.b ? 1 : 0)
   const side = (input.r ? 1 : 0) - (input.l ? 1 : 0)
   if (!fwd && !side) {

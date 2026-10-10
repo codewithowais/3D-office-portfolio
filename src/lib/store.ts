@@ -4,16 +4,36 @@ import type { V3 } from './math'
 import type { ThemeName } from './themes'
 import { getDevice } from './device'
 import { NPCS } from './dialogue'
-import { readName, readSkipped, saveName, saveSkipped } from './profile'
+import { readColor, readName, readProgress, readSkipped, saveColor, saveName, saveProgress, saveSkipped, type Progress } from './profile'
 import { clock as worldClock } from './clock'
 import { resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
-import { spotOf } from './talkables'
-import { input, player, resetPlayer, teleport } from './player'
+import { TALKABLES, spotOf, talkable } from './talkables'
+import { ZONES, type Zone } from './zones'
+import { doPose, input, player, resetPlayer, sitAt, standUp, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
 export type Mode = 'demo' | 'explore'
 export type GfxError = 'lost' | 'crash' | null
+export type ProgressKind = keyof Progress
+export interface Place {
+  id: string
+  title: string
+  sub: string
+  nonce: number
+}
+
+/** How many things there are to discover in each category. */
+export const PROGRESS_TOTAL: Record<ProgressKind, number> = {
+  met: TALKABLES.filter((t) => t.kind === 'person').length,
+  places: ZONES.length,
+  things: TALKABLES.filter((t) => t.kind !== 'person').length,
+}
+const DONE_MSG: Record<ProgressKind, string> = {
+  met: "You've met everyone in the office!",
+  places: "You've visited every place!",
+  things: "You've tried everything there is to try!",
+}
 
 export interface Flight {
   pos: V3
@@ -37,6 +57,12 @@ interface State {
   nearby: string | null
   /** the ball is within kicking range (football) */
   nearBall: boolean
+  /** sitting on a chair/sofa/bench */
+  seated: boolean
+  /** the place banner (shown briefly when you enter somewhere new) */
+  place: Place | null
+  progress: Progress
+  playerColor: string
   /** the conversation in progress */
   talking: { id: string; node: string } | null
   /** true once the user picked a quality themselves: auto-downgrade then stays out of the way */
@@ -67,6 +93,11 @@ interface State {
   stopWalk: () => void
   setNearby: (id: string | null) => void
   setNearBall: (v: boolean) => void
+  enterZone: (z: Zone) => void
+  clearPlace: () => void
+  standUp: () => void
+  setPlayerColor: (c: string) => void
+  mark: (kind: ProgressKind, id: string) => void
   setPlayerName: (name: string) => void
   skipName: () => void
   openNamePrompt: () => void
@@ -97,6 +128,10 @@ export const useStore = create<State>((set, get) => ({
   nameAsked: !!readName() || readSkipped(),
   nearby: null,
   nearBall: false,
+  seated: false,
+  place: null,
+  progress: readProgress(),
+  playerColor: readColor(),
   talking: null,
   chapter: 0,
   activeRoom: null,
@@ -151,7 +186,8 @@ export const useStore = create<State>((set, get) => ({
     player.speed = 0
     stopSoccer()
     resetEscort()
-    set({ walk: false, nearby: null, nearBall: false, talking: null })
+    standUp()
+    set({ walk: false, nearby: null, nearBall: false, seated: false, place: null, talking: null })
   },
   setNearby: (nearby) => set({ nearby }),
   setNearBall: (nearBall) => set({ nearBall }),
@@ -166,12 +202,55 @@ export const useStore = create<State>((set, get) => ({
     set({ askName: false, nameAsked: true })
   },
   openNamePrompt: () => set({ askName: true, talking: null }),
+  enterZone: (z) => {
+    set({ place: { id: z.id, title: z.title, sub: z.sub, nonce: performance.now() } })
+    get().mark('places', z.id)
+  },
+  clearPlace: () => set({ place: null }),
+  standUp: () => {
+    standUp()
+    set({ seated: false })
+  },
+  setPlayerColor: (playerColor) => {
+    saveColor(playerColor)
+    set({ playerColor })
+  },
+  mark: (kind, id) => {
+    const cur = get().progress
+    if (cur[kind].includes(id)) return
+    const next = { ...cur, [kind]: [...cur[kind], id] }
+    saveProgress(next)
+    set({ progress: next })
+    if (next[kind].length === PROGRESS_TOTAL[kind]) set({ notice: DONE_MSG[kind] })
+  },
   startTalk: (id) => {
     const who = id ?? get().nearby
-    if (!who || !NPCS[who] || !get().walk) return
+    const tk = who ? talkable(who) : undefined
+    if (!tk || !get().walk || get().seated) return
     Object.assign(input, { f: false, b: false, l: false, r: false, run: false })
     player.speed = 0
-    set({ talking: { id: who, node: 'hi' } })
+    // some things are used, not talked to
+    if (tk.action) {
+      const now = worldClock.t
+      if (tk.action === 'sit' && tk.seat) {
+        sitAt(tk.id, tk.seat)
+        set({ seated: true, nearby: null })
+      } else if (tk.action === 'coffee') {
+        doPose('drink', now, 3.4)
+        set({ notice: 'Fresh coffee. Exactly what you needed.' })
+      } else if (tk.action === 'bell') {
+        doPose('wave', now, 1.3)
+        set({ notice: 'Ding! Ayesha: Welcome! Ask me for a tour whenever you like.' })
+      } else if (tk.action === 'water') {
+        doPose('water', now, 3.8)
+        set({ notice: 'The plant looks much happier.' })
+      }
+      get().mark('things', tk.id)
+      return
+    }
+    if (!NPCS[tk.id]) return
+    get().mark(tk.kind === 'person' ? 'met' : 'things', tk.id)
+    set({ talking: { id: tk.id, node: 'hi' } })
   },
   choose: (i) => {
     const t = get().talking
@@ -186,7 +265,7 @@ export const useStore = create<State>((set, get) => ({
     }
     if (opt.action === 'askName') return set({ askName: true, talking: null })
     if (opt.action === 'escort') {
-      // Priya starts the guided tour from wherever she is standing right now
+      // Ayesha starts the guided tour from wherever she is standing right now
       const sp = spotOf('receptionist', worldClock.t)
       startEscort({ x: sp ? sp.x : -8, z: sp ? sp.z : 7.2 })
       return set({ talking: null })
