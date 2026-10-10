@@ -1,17 +1,29 @@
-import { BRAND } from './world'
-
 /**
- * Everything the people in the office say. Edit freely: this is the content of the portfolio.
- * Replace the placeholder studio story and contact details with your own.
+ * Everything the people in the office say, written from Muhammad Owais Ahmed's public portfolio
+ * (https://codewithowais.github.io). Edit freely: this file is the content of the site.
+ * `{name}` is replaced by the visitor's name (or removed gracefully if they skipped it).
  */
-export const CONTACT = { site: BRAND.site, email: `hello@${BRAND.site}` }
+export const OWNER = {
+  name: 'Muhammad Owais Ahmed',
+  short: 'Owais',
+  email: 'codewithowais@gmail.com',
+  whatsapp: 'https://wa.me/923169585886',
+  site: 'https://codewithowais.github.io',
+  github: 'https://github.com/codewithowais',
+  linkedin: 'https://www.linkedin.com/in/codewithowais/',
+  resume: 'https://codewithowais.github.io/muhammad-owais-ahmed-resume.pdf',
+}
 
 export interface Option {
   label: string
   /** id of the next node; omit to end the conversation */
   next?: string
-  /** walk the player to this spot (x, z) before ending the conversation */
+  /** teleport the player to this spot (x, z) and end the conversation */
   teleport?: [number, number]
+  /** open a link (new tab, or mail client for mailto:) and stay in the conversation */
+  href?: string
+  /** special actions */
+  action?: 'askName'
 }
 
 export interface Node {
@@ -28,9 +40,106 @@ export interface Npc {
   nodes: Record<string, Node>
 }
 
+/** Fills in the visitor's name, or removes the placeholder cleanly when there isn't one. */
+export function fill(text: string, name: string): string {
+  const n = name.trim()
+  if (n) return text.replace(/\{name\}/g, n)
+  return text.replace(/,\s*\{name\}/g, '').replace(/\s*\{name\},/g, ',').replace(/\{name\}/g, 'friend')
+}
+
 const bye: Option = { label: 'Thanks, bye!' }
+const back = (next: string): Option => ({ label: 'Back', next })
+const contactOptions: Option[] = [
+  { label: `Email ${OWNER.short}`, href: `mailto:${OWNER.email}` },
+  { label: 'Message on WhatsApp', href: OWNER.whatsapp },
+  { label: 'Connect on LinkedIn', href: OWNER.linkedin },
+  { label: 'Download the résumé', href: OWNER.resume },
+]
 
 export const NPCS: Record<string, Npc> = {
+  /* ---------------- Owais himself: the Boss Cabin ---------------- */
+  boss: {
+    id: 'boss',
+    name: 'Owais',
+    role: 'Staff Software Engineer',
+    accent: '#ff6f59',
+    nodes: {
+      hi: {
+        text: `Hi {name}, I'm Owais, nice to meet you! Welcome to my office. I build web and mobile products, and teach Flutter on the side. What would you like to know?`,
+        options: [
+          { label: 'Tell me about yourself', next: 'about' },
+          { label: 'What have you built?', next: 'work' },
+          { label: "What's your tech stack?", next: 'stack' },
+          { label: 'Are you available to hire?', next: 'hire' },
+          { label: 'How was this office built?', next: 'tech' },
+          { label: 'Just looking around' },
+        ],
+      },
+      about: {
+        text: "I'm a Staff Software Engineer from Karachi, Pakistan, with six years of building production web and mobile apps. I've been on the founding team at SimpliEd since day one, and I'm the Lead Trainer for Flutter at Jawan Pakistan.",
+        options: [{ label: 'What do you do at SimpliEd?', next: 'simplied' }, { label: 'Tell me about teaching', next: 'teach' }, { label: 'Education?', next: 'edu' }, back('hi')],
+      },
+      edu: {
+        text: "I'm studying BS Computer Science at Virtual University of Pakistan (2023 to 2027). Before that I did Pre-Engineering at Superior Govt College, Karachi. Most of what I know I learned by shipping things.",
+        options: [back('about')],
+      },
+      teach: {
+        text: 'At Jawan Pakistan I designed the whole Flutter curriculum and have trained over 1,200 developers across 11 cohorts, from their very first widget to apps published on the App Store and Play Store.',
+        options: [back('about')],
+      },
+      work: {
+        text: 'Pick one and I will tell you the story behind it.',
+        options: [
+          { label: 'SimpliEd', next: 'simplied' },
+          { label: 'Ledgerly', next: 'ledgerly' },
+          { label: 'AI Study Partner', next: 'study' },
+          { label: 'DevPath', next: 'devpath' },
+          { label: 'Tic-Tac-Toe Live', next: 'tictactoe' },
+          { label: 'Zulaal (3D website)', next: 'zulaal' },
+          { label: 'See everything on GitHub', href: OWNER.github },
+          back('hi'),
+        ],
+      },
+      simplied: {
+        text: 'SimpliEd is a school-management platform that grew from zero to 25,000+ users across 10 schools. I architected the Node.js and MongoDB backend, built the Angular web app and the Flutter QR-attendance and parent apps, ran the AWS infrastructure and CI/CD, and led code review for a team of five or six engineers.',
+        options: [{ label: 'Open simpliedtech.com', href: 'https://simpliedtech.com' }, back('work')],
+      },
+      ledgerly: {
+        text: 'Ledgerly is an open-source, privacy-first finance app with an AI assistant. It is an offline-first PWA built with Next.js 16, React 19 and IndexedDB, so your data stays on your device.',
+        options: [{ label: 'Open Ledgerly', href: 'https://expense-tracker-ochre-one-65.vercel.app' }, { label: 'View the code', href: 'https://github.com/codewithowais/expense-tracker' }, back('work')],
+      },
+      study: {
+        text: 'AI Study Partner turns your own PDFs and notes into a course: chapters, plain-language explanations, quizzes and mock exams, and weak-topic revision. It runs a local AI, so nothing leaves your machine.',
+        options: [{ label: 'View the code', href: 'https://github.com/codewithowais/ai-study-planner' }, back('work')],
+      },
+      devpath: {
+        text: "DevPath is a beginner-friendly learning and career platform with 200+ runnable lessons. My favourite feature is 'Watch it sort', a live visualizer that animates each sorting algorithm step by step from the lesson's own code.",
+        options: [{ label: 'Open DevPath', href: 'https://dev-path-by-codewithowais.vercel.app' }, back('work')],
+      },
+      tictactoe: {
+        text: 'Real-time multiplayer tic-tac-toe for two to four players: rooms you share by link, spectators, live voice chat over WebRTC, computer opponents, a leaderboard and an admin panel. Built with Next.js and Convex.',
+        options: [{ label: 'Play it', href: 'https://tictactoe-live.vercel.app' }, back('work')],
+      },
+      zulaal: {
+        text: 'Zulaal is a brand website for a premium Pakistani water company, with a three.js 3D hero, custom bottle orders and a Firebase admin panel. It is where my 3D work started, and it led to this very office.',
+        options: [{ label: 'Open Zulaal', href: 'https://zulaal.vercel.app' }, back('work')],
+      },
+      stack: {
+        text: 'TypeScript, JavaScript, Dart, C# and Python. Angular, React, Next.js and Flutter on the front; Node.js, NestJS and .NET Core on the back. MongoDB, PostgreSQL, SQL Server and Redis for data, and AWS, Docker and GitHub Actions to ship.',
+        options: [{ label: 'What have you built with it?', next: 'work' }, back('hi')],
+      },
+      hire: {
+        text: "I'm open to freelance, contract and full-time roles: remote worldwide, on-site in Karachi, and open to relocating to the Gulf (UAE and Saudi Arabia). Let's talk!",
+        options: [...contactOptions, back('hi')],
+      },
+      tech: {
+        text: 'This office is Next.js and React Three Fiber. Every wall, car and person is generated in code, nothing is a downloaded model, and it adapts its quality to your device so it stays smooth even on a phone.',
+        options: [{ label: 'Can you build something like this for me?', next: 'hire' }, back('hi')],
+      },
+    },
+  },
+
+  /* ---------------- Reception ---------------- */
   receptionist: {
     id: 'receptionist',
     name: 'Priya',
@@ -38,26 +147,35 @@ export const NPCS: Record<string, Npc> = {
     accent: '#17a2a4',
     nodes: {
       hi: {
-        text: `Welcome to ${BRAND.name}! I'm Priya, I look after every visitor. How can I help?`,
+        text: `Welcome to the office of Muhammad Owais Ahmed, {name}! I'm Priya, I look after every visitor. What would you like to know?`,
         options: [
-          { label: 'What is this place?', next: 'about' },
+          { label: 'Who is Owais?', next: 'who' },
+          { label: 'Is he available to hire?', next: 'hire' },
           { label: 'Take me somewhere', next: 'go' },
-          { label: 'Who works here?', next: 'team' },
-          bye,
+          { label: 'Let me tell you my name', action: 'askName' },
+          { label: 'Thanks, bye!' },
         ],
       },
-      about: {
-        text: "We're a small studio that builds fast, good-looking websites and interactive 3D experiences, like the one you're standing in right now.",
-        options: [{ label: 'Who works here?', next: 'team' }, { label: 'Back', next: 'hi' }],
+      who: {
+        text: 'Owais is a Staff Software Engineer from Karachi with six years of experience in Angular, React, Node.js, .NET and Flutter. He is on the founding team at SimpliEd, which serves 25,000+ users, and he is Lead Trainer for Flutter at Jawan Pakistan.',
+        options: [{ label: 'Take me to meet him', teleport: [9, -9] }, { label: 'Who else works here?', next: 'team' }, back('hi')],
       },
       team: {
-        text: 'Jin writes the front end in the Work Studio, Leo models in the Design Room, Maya keeps projects on track in Operations, Nora runs the meetings, and Alex, the boss, decides what we say yes to. Say hi to them!',
-        options: [{ label: 'Take me somewhere', next: 'go' }, { label: 'Back', next: 'hi' }],
+        text: 'Jin covers the front end, Maya the backend and cloud, Leo the 3D and design, Nora the mobile apps, and Omar the training and mentoring. Each of them can tell you about that side of his work. Walk up and press E.',
+        options: [back('hi')],
+      },
+      hire: {
+        text: 'Yes! Owais is open to freelance, contract and full-time roles: remote worldwide, on-site in Karachi, and open to relocating to the Gulf, in the UAE and Saudi Arabia.',
+        options: [{ label: 'How do I contact him?', next: 'contact' }, back('hi')],
+      },
+      contact: {
+        text: `The quickest ways to reach Owais are below. Email is best: ${OWNER.email}.`,
+        options: [...contactOptions, back('hi')],
       },
       go: {
         text: 'Of course. Where to?',
         options: [
-          { label: 'The Boss Cabin', teleport: [9, -9] },
+          { label: "Owais's cabin", teleport: [9, -9] },
           { label: 'The Work Studio', teleport: [-12, 2.6] },
           { label: 'The Lounge', teleport: [14, 7] },
           { label: 'Never mind', next: 'hi' },
@@ -65,34 +183,8 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
-  boss: {
-    id: 'boss',
-    name: 'Alex Morgan',
-    role: 'Founder',
-    accent: '#ff6f59',
-    nodes: {
-      hi: {
-        text: 'Ah, a visitor. I started this place to prove the web can feel like somewhere you go, not just something you scroll. What brings you in?',
-        options: [
-          { label: "I'd like to work with you", next: 'work' },
-          { label: 'How was this built?', next: 'tech' },
-          { label: 'Just exploring', next: 'explore' },
-        ],
-      },
-      work: {
-        text: `Wonderful. Tell us what you need: a website, a product, a 3D experience. Write to ${CONTACT.email} or visit ${CONTACT.site}. We reply within a day.`,
-        options: [{ label: 'How was this built?', next: 'tech' }, bye],
-      },
-      tech: {
-        text: "Next.js and React Three Fiber. Every wall, car and person here is generated in code, and it runs in your browser, even on a phone.",
-        options: [{ label: "I'd like to work with you", next: 'work' }, { label: 'Impressive!' }],
-      },
-      explore: {
-        text: 'Explore away. Try the Time menu at the top: the office looks quite different at night.',
-        options: [bye],
-      },
-    },
-  },
+
+  /* ---------------- Gate ---------------- */
   guard: {
     id: 'guard',
     name: 'Sam',
@@ -100,108 +192,122 @@ export const NPCS: Record<string, Npc> = {
     accent: '#14324b',
     nodes: {
       hi: {
-        text: 'Morning! Just keeping the garden alive and the gate secure. Mind the road, the traffic here never stops.',
-        options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: "Who's inside?", next: 'who' }, bye],
+        text: `Morning, {name}! Owais's office is straight through the gate. Mind the road, the traffic here never stops.`,
+        options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: 'Where is Owais based?', next: 'where' }, bye],
       },
       tips: {
-        text: 'Head in through the gate, say hi to Priya at reception, then follow the corridor. Hold Shift to run, press E to talk to people, Esc to stop walking.',
-        options: [{ label: 'Back', next: 'hi' }],
+        text: 'Head in, say hi to Priya at reception, then follow the corridor to the Boss Cabin. Hold Shift to run, press E to talk to anyone with a diamond above their head, and Esc to stop walking.',
+        options: [back('hi')],
       },
-      who: {
-        text: 'Priya at the front desk, the studio crew, and Alex at the end of the corridor. Everyone is friendly. Mostly.',
-        options: [{ label: 'Back', next: 'hi' }],
+      where: {
+        text: "Karachi, Pakistan. He works on-site there, remotely with teams worldwide, and he's open to relocating to the Gulf.",
+        options: [back('hi')],
       },
     },
   },
+
+  /* ---------------- The team: each one speaks for part of Owais's work ---------------- */
   jin: {
     id: 'jin',
     name: 'Jin',
-    role: 'Front-end Developer',
+    role: 'Front-end Lead',
     accent: '#2a5d9f',
     nodes: {
       hi: {
-        text: "Shh, I'm shipping a feature... oh, hi! I'm Jin, front end. Currently fighting a CSS bug.",
-        options: [{ label: 'What are you building?', next: 'build' }, { label: 'Performance tips?', next: 'perf' }, bye],
+        text: `Shh, I'm in the middle of a component... oh, hi {name}! I'm Jin. I look after the front end, which is Owais's home turf.`,
+        options: [{ label: 'What front-end work has he done?', next: 'fe' }, { label: 'Any 3D work?', next: 'threed' }, bye],
       },
-      build: {
-        text: 'A 3D portfolio: camera paths, instanced cities, a walkable office, and keeping it smooth on phones.',
-        options: [{ label: 'Performance tips?', next: 'perf' }, { label: 'Back', next: 'hi' }],
+      fe: {
+        text: 'He built the Angular web app for SimpliEd, and ships React and Next.js products such as Ledgerly, DevPath and Tic-Tac-Toe Live. Tailwind, Material UI, Redux and RxJS are all in his toolbox.',
+        options: [{ label: 'See his GitHub', href: OWNER.github }, back('hi')],
       },
-      perf: {
-        text: "Instance everything that repeats, cap the pixel ratio, and measure frame time before you guess. The browser will thank you.",
-        options: [{ label: 'Back', next: 'hi' }],
-      },
-    },
-  },
-  leo: {
-    id: 'leo',
-    name: 'Leo',
-    role: '3D Designer',
-    accent: '#9b6fd1',
-    nodes: {
-      hi: {
-        text: "Hey! I'm Leo. Palette, lighting, mood: that's my corner. Have you tried the Time menu yet?",
-        options: [{ label: 'Tell me about the lighting', next: 'light' }, bye],
-      },
-      light: {
-        text: 'Day is bright and airy, Golden hour gives you long warm shadows, and Night turns every window on. Same scene, three completely different moods.',
-        options: [{ label: 'Back', next: 'hi' }],
+      threed: {
+        text: 'Yes: the three.js hero on the Zulaal website, and this entire office, which is React Three Fiber with everything generated in code.',
+        options: [back('hi')],
       },
     },
   },
   maya: {
     id: 'maya',
     name: 'Maya',
-    role: 'Operations',
+    role: 'Backend & Cloud',
     accent: '#ffc233',
     nodes: {
       hi: {
-        text: 'Schedules, budgets, hand-offs. If something ships on time, that was me. What do you need?',
-        options: [{ label: 'How do projects start?', next: 'start' }, bye],
+        text: `Hi {name}! I'm Maya. Servers, databases, pipelines: if it runs in the cloud and doesn't fall over, that's my side of Owais's work.`,
+        options: [{ label: 'What backend does he build?', next: 'be' }, { label: 'And the cloud side?', next: 'cloud' }, bye],
       },
-      start: {
-        text: 'A short call, a clear plan, then a working prototype within a week, so you can see and click it before we go further.',
-        options: [{ label: 'Back', next: 'hi' }],
+      be: {
+        text: 'Node.js with Express and NestJS, .NET Core, and Django, with REST, GraphQL and microservices. He architected the whole SimpliEd backend on Node.js and MongoDB, and earlier migrated core services from .NET Framework to .NET Core.',
+        options: [back('hi')],
+      },
+      cloud: {
+        text: 'AWS (EC2, S3, RDS and Lambda), Docker and GitHub Actions for CI/CD, on top of MongoDB, PostgreSQL, SQL Server and Redis. He also led code review for a team of five or six engineers.',
+        options: [back('hi')],
+      },
+    },
+  },
+  leo: {
+    id: 'leo',
+    name: 'Leo',
+    role: '3D & Design',
+    accent: '#9b6fd1',
+    nodes: {
+      hi: {
+        text: `Hey {name}, I'm Leo. I look after the 3D and the look of things. Have you tried the Time menu at the top yet?`,
+        options: [{ label: 'How is this 3D office made?', next: 'how' }, bye],
+      },
+      how: {
+        text: "Every wall, car, tree and person is generated in code with React Three Fiber, no downloaded models. Day, Golden hour and Night are three lighting moods on the same scene, and it adjusts its quality automatically so it runs on phones too.",
+        options: [{ label: "Show me Owais's 3D website", href: 'https://zulaal.vercel.app' }, back('hi')],
       },
     },
   },
   nora: {
     id: 'nora',
     name: 'Nora',
-    role: 'Project Manager',
+    role: 'Mobile (Flutter)',
     accent: '#0f8b8d',
     nodes: {
       hi: {
-        text: "Sorry, mid-meeting! We're reviewing the roadmap. Come find me in the Lounge afterwards and I'll walk you through it.",
-        options: [bye],
+        text: `Sorry, {name}, I'm mid-meeting about a release! I look after mobile. Owais has been shipping Flutter apps for years.`,
+        options: [{ label: 'What mobile apps has he built?', next: 'apps' }, bye],
+      },
+      apps: {
+        text: "SimpliEd's QR-attendance and parent-student apps, used daily by thousands of families, plus an offline-first travel app with on-device English to Chinese translation. He also teaches Flutter, so he knows it inside out.",
+        options: [back('hi')],
       },
     },
   },
   omar: {
     id: 'omar',
     name: 'Omar',
-    role: 'Copywriter',
+    role: 'Training & Mentoring',
     accent: '#ff8fc0',
     nodes: {
       hi: {
-        text: 'Best coffee in the neighbourhood, and the best sofa. Take a seat. The view is better from here.',
-        options: [{ label: 'What do you write?', next: 'write' }, bye],
+        text: `Take a seat, {name}! I'm Omar. Best sofa in the building, and I keep the teaching side of Owais's work organised.`,
+        options: [{ label: 'Tell me about the teaching', next: 'teach' }, bye],
       },
-      write: {
-        text: 'Words that make people want to click. Short ones, mostly. This conversation is about my limit.',
-        options: [{ label: 'Back', next: 'hi' }],
+      teach: {
+        text: 'Owais is Lead Trainer at Jawan Pakistan. He designed the Flutter curriculum and has trained over 1,200 developers across 11 cohorts. He also offers workshops and one-to-one mentorship for individuals and teams.',
+        options: [{ label: 'How do I reach him about mentoring?', href: `mailto:${OWNER.email}` }, back('hi')],
       },
     },
   },
   visitor: {
     id: 'visitor',
     name: 'Daniel',
-    role: 'Visitor',
+    role: 'Visiting recruiter',
     accent: '#2f9bff',
     nodes: {
       hi: {
-        text: "I'm here to meet the boss. Priya says he's expecting me. Lovely office, isn't it?",
-        options: [bye],
+        text: `Oh, hello {name}! I'm here to talk to Owais about a role. I heard he's open to relocating to the Gulf. Lovely office, isn't it?`,
+        options: [{ label: 'Is that true?', next: 'gulf' }, bye],
+      },
+      gulf: {
+        text: "Yes: UAE and Saudi Arabia are both on the table, with visa sponsorship welcome and about 30 days' notice. He's also happy to work fully remote.",
+        options: [back('hi')],
       },
     },
   },
