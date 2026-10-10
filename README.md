@@ -18,8 +18,8 @@ npm run build && npm start
 - **Auto-play tour** (about 3 minutes): guard watering the garden, a jogger, five-a-side football,
   a receptionist leading a visitor to the boss, the visitor driving away, then a 360° city orbit.
 - **Explore mode**: orbit / zoom / pan, 7 room shortcuts, scenic places, Pause / Exit demo / Start demo.
-- **Talk to people**: in Walk mode, nine characters can be spoken to (marked by a bobbing diamond). Walk close and press **E** (or tap the prompt), answer with **1–4**, **Esc** to leave. Some answers can teleport you, e.g. Priya at reception takes you to the Boss Cabin.
-- **Things to do in Walk mode**: play football (step onto the pitch, run into the ball or press **E** to kick; you play for red and attack the left goal), ask Priya to **show you around the office** (she walks you through the rooms and waits if you fall behind), and listen to people chatting with each other (speech bubbles over whoever is speaking).
+- **Talk to people**: in Walk mode, nine characters can be spoken to (marked by a bobbing diamond). Walk close and press **E** (or tap the prompt), answer with **1–4**, **Esc** to leave. Some answers can teleport you, e.g. Ayesha at reception takes you to the Boss Cabin.
+- **Things to do in Walk mode**: play football (step onto the pitch, run into the ball or press **E** to kick; you play for red and attack the left goal), ask Ayesha to **show you around the office** (she walks you through the rooms and waits if you fall behind), and listen to people chatting with each other (speech bubbles over whoever is speaking).
 - **Quality**: Low (no shadows), Medium, High.
 - **Time of day**: Day, Golden hour, Night (themes live in `src/lib/themes.ts`).
 - Deep link into the tour with `/?t=60` (seconds).

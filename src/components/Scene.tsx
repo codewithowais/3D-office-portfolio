@@ -5,11 +5,12 @@ import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import { dprFor, getDevice } from '@/lib/device'
-import { player, stepPlayer } from '@/lib/player'
+import { action, input, player, seat, stepPlayer } from '@/lib/player'
 import { fill } from '@/lib/dialogue'
 import { escort, updateEscort } from '@/lib/escort'
 import { inPitch, soccer, startSoccer, updateSoccer } from '@/lib/soccer'
-import { TALKABLES, TALK_RANGE, spotOf } from '@/lib/talkables'
+import { TALKABLES, TALK_RANGE, spotOf, talkable } from '@/lib/talkables'
+import { zoneAt } from '@/lib/zones'
 import { useStore, type Flight } from '@/lib/store'
 import { TOUR_LEN, activeRoomAt, cameraAt, chapterAt, type Cam } from '@/lib/tour'
 import { roomAt } from '@/lib/world'
@@ -25,7 +26,7 @@ function Director() {
   const cam = useMemo<Cam>(() => ({ p: [0, 0, 0], t: [0, 0, 0] }), [])
   const flight = useRef<Flight | null>(null)
   const primed = useRef(false)
-  const last = useRef({ x: 0, z: 0, init: false })
+  const last = useRef({ x: 0, z: 0, init: false, zone: null as string | null })
   const mode = useStore((s) => s.mode)
   const fly = useStore((s) => s.flight)
 
@@ -49,7 +50,10 @@ function Director() {
       performance.mark('office-ready')
       requestAnimationFrame(() => performance.mark('office-first-frame'))
     }
-    if (!st.walk) last.current.init = false
+    if (!st.walk) {
+      last.current.init = false
+      last.current.zone = null
+    }
 
     if (st.mode === 'demo') {
       if (!st.paused) clock.t += dt
@@ -104,32 +108,51 @@ function Director() {
           l.init = true
         }
         if (st.talking) {
-          // stand still and face whoever you're talking to; walk away and the conversation ends
+          // stand still and face whoever (or whatever) you're talking to; walk away and the conversation ends
           player.speed = 0
           const sp = spotOf(st.talking.id, clock.t)
           if (sp) {
             player.heading = Math.atan2(sp.x - player.x, sp.z - player.z)
-            if (Math.hypot(sp.x - player.x, sp.z - player.z) > TALK_RANGE * 2.2) st.endTalk()
+            const reach = (talkable(st.talking.id)?.range ?? TALK_RANGE) * 2.2
+            if (Math.hypot(sp.x - player.x, sp.z - player.z) > reach) st.endTalk()
           }
+        } else if (seat.active) {
+          // seated: any movement key stands you up
+          player.speed = 0
+          if (input.f || input.b || input.l || input.r) st.standUp()
+          if (st.nearby) st.setNearby(null)
         } else {
           stepPlayer(fx, fz, dt)
+          // one-shot poses (coffee, watering, bell) end after a few seconds, or as soon as you walk off
+          if (action.until && (clock.t >= action.until || player.speed > 0.1)) {
+            action.until = 0
+            player.pose = 'stand'
+          }
+          // the closest thing in reach, measured against each thing's own reach
           let best: string | null = null
-          let bd = TALK_RANGE
+          let bd = 1
           for (const tk of TALKABLES) {
             const sp = tk.at(clock.t, nearScratch)
             if (!sp.visible) continue
-            const d = Math.hypot(sp.x - player.x, sp.z - player.z)
-            if (d < bd) {
-              bd = d
+            const r = Math.hypot(sp.x - player.x, sp.z - player.z) / tk.range
+            if (r < bd) {
+              bd = r
               best = tk.id
             }
           }
           if (best !== st.nearby) st.setNearby(best)
         }
-        // Priya's guided tour, and the football match once you step onto the pitch
+        // entering a new place shows its banner and counts towards your discoveries
+        const zn = zoneAt(player.x, player.z)
+        const zid = zn ? zn.id : null
+        if (zid !== l.zone) {
+          l.zone = zid
+          if (zn) st.enterZone(zn)
+        }
+        // Ayesha's guided tour, and the football match once you step onto the pitch
         updateEscort(dt, player)
         if (escort.say) {
-          st.setNotice(`Priya: ${fill(escort.say, st.playerName)}`)
+          st.setNotice(`Ayesha: ${fill(escort.say, st.playerName)}`)
           escort.say = ''
         }
         if (!soccer.active && inPitch(player.x, player.z)) {

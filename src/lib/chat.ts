@@ -23,13 +23,13 @@ export const PAIRS: Pair[] = [
     id: 'corridor',
     a: { x: -2.3, z: 2.6, shirt: '#ffc233', pants: '#222426', skin: '#c68e69', hair: '#1c1714' },
     b: { x: -2.3, z: 4.0, shirt: '#4cc2a0', pants: '#4a4036', skin: '#f0c9a4', hair: '#5a3d27' },
-    lines: ['Is the design review at three?', 'Yes, in the meeting room.', 'Did Leo finish the night theme?', "It's glowing. Wait till you see it.", 'Lovely. Walk over together?', 'Sure!'],
+    lines: ['Is the design review at three?', 'Yes, in the meeting room.', 'Did Zain finish the night theme?', "It's glowing. Wait till you see it.", 'Lovely. Walk over together?', 'Sure!'],
   },
   {
     id: 'sidewalk',
     a: { x: -30, z: 22, shirt: '#e8584a', pants: '#2b2f33', skin: '#e0b08c', hair: '#3a2a1e' },
     b: { x: -28.5, z: 22, shirt: '#9b6fd1', pants: '#59616b', skin: '#a87250', hair: '#12100f' },
-    lines: ['Lovely weather today!', 'Perfect for a walk.', 'Have you been inside the office?', 'Not yet. Priya gives a great tour.', 'Then let us go in!', 'After this coffee.'],
+    lines: ['Lovely weather today!', 'Perfect for a walk.', 'Have you been inside the office?', 'Not yet. Ayesha gives a great tour.', 'Then let us go in!', 'After this coffee.'],
   },
   {
     id: 'pitch',

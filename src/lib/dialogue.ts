@@ -142,18 +142,18 @@ export const NPCS: Record<string, Npc> = {
   /* ---------------- Reception ---------------- */
   receptionist: {
     id: 'receptionist',
-    name: 'Priya',
+    name: 'Ayesha',
     role: 'Receptionist',
     accent: '#17a2a4',
     nodes: {
       hi: {
-        text: `Welcome to the office of Muhammad Owais Ahmed, {name}! I'm Priya, I look after every visitor. What would you like to know?`,
+        text: `Welcome to the office of Muhammad Owais Ahmed, {name}! I'm Ayesha, I look after every visitor. What would you like to know?`,
         options: [
           { label: 'Who is Owais?', next: 'who' },
           { label: 'Is he available to hire?', next: 'hire' },
           { label: 'Show me around the office', action: 'escort' },
           { label: 'Take me somewhere', next: 'go' },
-          { label: 'Let me tell you my name', action: 'askName' },
+          { label: 'Change my name or shirt colour', action: 'askName' },
           { label: 'Thanks, bye!' },
         ],
       },
@@ -162,7 +162,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'Take me to meet him', teleport: [9, -9] }, { label: 'Who else works here?', next: 'team' }, back('hi')],
       },
       team: {
-        text: 'Jin covers the front end, Maya the backend and cloud, Leo the 3D and design, Nora the mobile apps, and Omar the training and mentoring. Each of them can tell you about that side of his work. Walk up and press E.',
+        text: 'Hamza covers the front end, Sana the backend and cloud, Zain the 3D and design, Mahnoor the mobile apps, and Usman the training and mentoring. Each of them can tell you about that side of his work. Walk up and press E.',
         options: [back('hi')],
       },
       hire: {
@@ -188,7 +188,7 @@ export const NPCS: Record<string, Npc> = {
   /* ---------------- Gate ---------------- */
   guard: {
     id: 'guard',
-    name: 'Sam',
+    name: 'Rashid',
     role: 'Security',
     accent: '#14324b',
     nodes: {
@@ -197,7 +197,7 @@ export const NPCS: Record<string, Npc> = {
         options: [{ label: 'Any tips for exploring?', next: 'tips' }, { label: 'Where is Owais based?', next: 'where' }, bye],
       },
       tips: {
-        text: 'Head in, say hi to Priya at reception, then follow the corridor to the Boss Cabin. Hold Shift to run, press E to talk to anyone with a diamond above their head, and Esc to stop walking.',
+        text: 'Head in, say hi to Ayesha at reception, then follow the corridor to the Boss Cabin. A diamond floats over everything you can interact with: people, computers, boards, chairs, even the coffee machine. Press E near one. Hold Shift to run, Esc to stop walking.',
         options: [back('hi')],
       },
       where: {
@@ -208,14 +208,14 @@ export const NPCS: Record<string, Npc> = {
   },
 
   /* ---------------- The team: each one speaks for part of Owais's work ---------------- */
-  jin: {
-    id: 'jin',
-    name: 'Jin',
+  hamza: {
+    id: 'hamza',
+    name: 'Hamza',
     role: 'Front-end Lead',
     accent: '#2a5d9f',
     nodes: {
       hi: {
-        text: `Shh, I'm in the middle of a component... oh, hi {name}! I'm Jin. I look after the front end, which is Owais's home turf.`,
+        text: `Shh, I'm in the middle of a component... oh, hi {name}! I'm Hamza. I look after the front end, which is Owais's home turf.`,
         options: [{ label: 'What front-end work has he done?', next: 'fe' }, { label: 'Any 3D work?', next: 'threed' }, bye],
       },
       fe: {
@@ -228,14 +228,14 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
-  maya: {
-    id: 'maya',
-    name: 'Maya',
+  sana: {
+    id: 'sana',
+    name: 'Sana',
     role: 'Backend & Cloud',
     accent: '#ffc233',
     nodes: {
       hi: {
-        text: `Hi {name}! I'm Maya. Servers, databases, pipelines: if it runs in the cloud and doesn't fall over, that's my side of Owais's work.`,
+        text: `Hi {name}! I'm Sana. Servers, databases, pipelines: if it runs in the cloud and doesn't fall over, that's my side of Owais's work.`,
         options: [{ label: 'What backend does he build?', next: 'be' }, { label: 'And the cloud side?', next: 'cloud' }, bye],
       },
       be: {
@@ -248,14 +248,14 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
-  leo: {
-    id: 'leo',
-    name: 'Leo',
+  zain: {
+    id: 'zain',
+    name: 'Zain',
     role: '3D & Design',
     accent: '#9b6fd1',
     nodes: {
       hi: {
-        text: `Hey {name}, I'm Leo. I look after the 3D and the look of things. Have you tried the Time menu at the top yet?`,
+        text: `Hey {name}, I'm Zain. I look after the 3D and the look of things. Have you tried the Time menu at the top yet?`,
         options: [{ label: 'How is this 3D office made?', next: 'how' }, bye],
       },
       how: {
@@ -264,9 +264,9 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
-  nora: {
-    id: 'nora',
-    name: 'Nora',
+  mahnoor: {
+    id: 'mahnoor',
+    name: 'Mahnoor',
     role: 'Mobile (Flutter)',
     accent: '#0f8b8d',
     nodes: {
@@ -280,14 +280,14 @@ export const NPCS: Record<string, Npc> = {
       },
     },
   },
-  omar: {
-    id: 'omar',
-    name: 'Omar',
+  usman: {
+    id: 'usman',
+    name: 'Usman',
     role: 'Training & Mentoring',
     accent: '#ff8fc0',
     nodes: {
       hi: {
-        text: `Take a seat, {name}! I'm Omar. Best sofa in the building, and I keep the teaching side of Owais's work organised.`,
+        text: `Take a seat, {name}! I'm Usman. Best sofa in the building, and I keep the teaching side of Owais's work organised.`,
         options: [{ label: 'Tell me about the teaching', next: 'teach' }, bye],
       },
       teach: {
@@ -298,7 +298,7 @@ export const NPCS: Record<string, Npc> = {
   },
   visitor: {
     id: 'visitor',
-    name: 'Daniel',
+    name: 'Faisal',
     role: 'Visiting recruiter',
     accent: '#2f9bff',
     nodes: {
@@ -349,8 +349,72 @@ export const NPCS: Record<string, Npc> = {
         options: [back('hi')],
       },
       office: {
-        text: "Definitely. Go in through the gate and ask Priya at reception to show you around. She even waits if you stop to look at things.",
+        text: "Definitely. Go in through the gate and ask Ayesha at reception to show you around. She even waits if you stop to look at things.",
         options: [back('hi')],
+      },
+    },
+  },
+
+  /* ---------------- Objects you can use ---------------- */
+  pc: {
+    id: 'pc',
+    name: "Owais's computer",
+    role: 'Workstation',
+    accent: '#0f8b8d',
+    nodes: {
+      hi: {
+        text: `The screen is open on GitHub: 60+ repositories, from SimpliEd-style platforms to AI tools, a 3D water-brand site and this very office. What would you like to open?`,
+        options: [
+          { label: 'Open his GitHub', href: OWNER.github },
+          { label: 'Open the portfolio site', href: OWNER.site },
+          { label: 'Open LinkedIn', href: OWNER.linkedin },
+          { label: 'Download the résumé', href: OWNER.resume },
+          { label: 'Step away' },
+        ],
+      },
+    },
+  },
+  board: {
+    id: 'board',
+    name: 'Skills board',
+    role: 'Corkboard',
+    accent: '#ffc233',
+    nodes: {
+      hi: {
+        text: 'A corkboard covered in sticky notes: Angular, React, Next.js, Flutter, Node.js, NestJS, .NET Core, MongoDB, PostgreSQL, AWS, Docker, GitHub Actions. Someone has underlined "Flutter" twice.',
+        options: [{ label: 'Who works with these?', next: 'who' }, { label: 'Step away' }],
+      },
+      who: {
+        text: 'Hamza handles the front end, Sana the backend and cloud, Mahnoor the Flutter apps, and Owais does a bit of everything. Walk up to any of them and press E.',
+        options: [back('hi')],
+      },
+    },
+  },
+  shelf: {
+    id: 'shelf',
+    name: 'Bookshelf',
+    role: 'Owais\'s shelf',
+    accent: '#7a4a2e',
+    nodes: {
+      hi: {
+        text: "Rows of programming books and binders. One folder is labelled 'Flutter curriculum, Jawan Pakistan': the course Owais designed and has taught to over 1,200 developers.",
+        options: [{ label: 'Tell me about the teaching', next: 'teach' }, { label: 'Step away' }],
+      },
+      teach: {
+        text: 'Eleven cohorts so far, from first widget to published apps. He also offers workshops and one-to-one mentoring.',
+        options: [{ label: 'Ask about mentoring', href: `mailto:${OWNER.email}` }, back('hi')],
+      },
+    },
+  },
+  screen: {
+    id: 'screen',
+    name: 'Meeting-room screen',
+    role: 'Presentation',
+    accent: '#17a2a4',
+    nodes: {
+      hi: {
+        text: 'The screen is showing a slide: "Muhammad Owais Ahmed, Staff Software Engineer. Angular, React, Node.js, .NET and Flutter. SimpliEd: 25,000+ users, 10 schools."',
+        options: [{ label: 'Open the full résumé (PDF)', href: OWNER.resume }, { label: 'Connect on LinkedIn', href: OWNER.linkedin }, { label: 'Step away' }],
       },
     },
   },

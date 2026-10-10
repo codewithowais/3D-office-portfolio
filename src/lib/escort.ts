@@ -2,7 +2,7 @@ import type { Pose, Sample } from './actor'
 import { receptionist, TOUR_LEN } from './actors'
 
 /**
- * Priya's guided tour. She walks you through the office, stopping to tell you about each part, waits
+ * Ayesha's guided tour. She walks you through the office, stopping to tell you about each part, waits
  * when you fall behind, then goes back to her desk. Pure logic; the scene reads `escort.sample`.
  */
 type State = 'idle' | 'escorting' | 'returning' | 'parked'
@@ -22,9 +22,9 @@ const ROUTE: Stop[] = [
   { x: -4, z: 7.2 },
   { x: -3.4, z: 10 },
   { x: 0, z: 10.5, face: Math.PI, say: 'Welcome in, {name}! This is reception, where I look after every visitor.', wait: 3.2, pose: 'talk' },
-  { x: 0, z: 6, face: Math.PI / 2, say: 'On your right: the Meeting Room, and behind it the Lounge where Omar relaxes.', wait: 3.2, pose: 'talk' },
-  { x: 0, z: 0, face: -Math.PI / 2, say: 'The Work Studio is on your left and the Design Room on your right. Jin and Leo work there.', wait: 3.4, pose: 'talk' },
-  { x: 0, z: -6, face: -Math.PI / 2, say: 'Operations is on the left. Maya keeps the backend and cloud running from there.', wait: 3.2, pose: 'talk' },
+  { x: 0, z: 6, face: Math.PI / 2, say: 'On your right: the Meeting Room, and behind it the Lounge where Usman relaxes.', wait: 3.2, pose: 'talk' },
+  { x: 0, z: 0, face: -Math.PI / 2, say: 'The Work Studio is on your left and the Design Room on your right. Hamza and Zain work there.', wait: 3.4, pose: 'talk' },
+  { x: 0, z: -6, face: -Math.PI / 2, say: 'Operations is on the left. Sana keeps the backend and cloud running from there.', wait: 3.2, pose: 'talk' },
   { x: 0, z: -8.6, face: Math.PI / 2, say: 'And this is the Boss Cabin. Owais is expecting you.', wait: 2.6, pose: 'talk' },
   { x: 1.1, z: -7.4, face: Math.PI / 2, say: 'Go on in, {name}!', wait: 2.4, pose: 'wave' },
 ]
@@ -131,7 +131,7 @@ export function updateEscort(dt: number, player: { x: number; z: number }) {
   }
 }
 
-/** Where Priya is right now: the scripted tour actor, or the live guide while she is escorting. */
+/** Where Ayesha is right now: the scripted tour actor, or the live guide while she is escorting. */
 export function receptionistSample(t: number): Sample {
   return escort.state === 'idle' ? receptionist.sample(t % TOUR_LEN) : escort.sample
 }
