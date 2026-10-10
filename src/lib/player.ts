@@ -7,7 +7,7 @@ export const player: Sample = { x: 0, y: 0, z: 25, heading: Math.PI, speed: 0, p
 export const SPAWN = { x: 0, z: 25, heading: Math.PI }
 
 /** Movement speeds in metres per second: walk, run, sprint. */
-export const SPEEDS = [2.3, 4.4, 6.6] as const
+export const SPEEDS = [2.3, 5.0, 8.5] as const
 export const SPEED_NAMES = ['Walk', 'Run', 'Sprint'] as const
 /** The chosen base speed (index into SPEEDS). Holding Shift / "Hold to run" goes one level faster. */
 export const motion = { level: 0 }
