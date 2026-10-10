@@ -10,7 +10,8 @@ import { escort, resetEscort, startEscort } from './escort'
 import { stopSoccer } from './soccer'
 import { TALKABLES, spotOf, talkable } from './talkables'
 import { ZONES, type Zone } from './zones'
-import { spawnFor } from './world'
+import { SPAWNS, spawnFor } from './world'
+import { cancelWalkTo } from './walkto'
 import { EMOTES, doPose, jump, input, motion, player, resetPlayer, sitAt, standUp, teleport } from './player'
 
 export type Quality = 'Low' | 'Medium' | 'High'
@@ -68,6 +69,8 @@ interface State {
   /** a person welcoming you (shown as a bubble over their head) */
   greeting: Greeting | null
   greeted: string[]
+  /** walking, but on the football pitch or outside the office compound (shows 'Back to office') */
+  away: boolean
   /** football: a match is on, and its score */
   playing: boolean
   score: { red: number; blue: number }
@@ -111,6 +114,8 @@ interface State {
   setNearBall: (v: boolean) => void
   enterZone: (z: Zone) => void
   greet: (id: string) => void
+  setAway: (away: boolean) => void
+  returnToOffice: () => void
   setPlaying: (playing: boolean, score?: { red: number; blue: number }) => void
   clearPlace: () => void
   standUp: () => void
@@ -129,6 +134,22 @@ interface State {
 }
 
 let restores: number[] = []
+
+/**
+ * Teleports the walking character somewhere new, from any state: seated, chatting, mid-match or on the
+ * guided tour. Ends whatever that was cleanly so no chips, matches or escorts are left dangling.
+ */
+function relocate(x: number, z: number, room: string | null) {
+  const st = useStore.getState()
+  st.standUp()
+  stopSoccer()
+  resetEscort()
+  cancelWalkTo()
+  Object.assign(input, { f: false, b: false, l: false, r: false, run: false })
+  teleport(x, z)
+  player.pose = 'stand'
+  useStore.setState({ talking: null, nearby: null, nearBall: false, playing: false, greeting: null, activeRoom: room, flight: null })
+}
 function initSpeed() {
   const n = readSpeed()
   motion.level = n
@@ -158,6 +179,7 @@ export const useStore = create<State>((set, get) => ({
   seated: false,
   greeting: null,
   greeted: [],
+  away: false,
   playing: false,
   score: { red: 0, blue: 0 },
   place: null,
@@ -201,20 +223,23 @@ export const useStore = create<State>((set, get) => ({
     // while walking, picking a place takes your character there instead of leaving walk mode
     if (get().walk) {
       const dest = spawnFor(room, pos)
-      if (dest) {
-        get().standUp()
-        teleport(dest[0], dest[1])
-        set({ talking: null, nearby: null, activeRoom: room })
-        return
-      }
+      if (dest) return relocate(dest[0], dest[1], room)
+      // aerial and city views have no spot to stand on: leave walk mode cleanly (ends football, tour, chats)
+      get().stopWalk()
     }
     set({ mode: 'explore', walk: false, talking: null, nearby: null, paused: false, activeRoom: room, flight: { pos, target, nonce: performance.now() } })
   },
+  returnToOffice: () => {
+    const [x, z] = SPAWNS.reception
+    if (get().walk) relocate(x, z, 'reception')
+  },
+  setAway: (away) => set({ away }),
   startDemo: () => {
     clock.t = 0
     stopSoccer()
     resetEscort()
-    set({ mode: 'demo', walk: false, talking: null, nearby: null, paused: false, chapter: 0, activeRoom: null, flight: null })
+    cancelWalkTo()
+    set({ mode: 'demo', walk: false, away: false, talking: null, nearby: null, paused: false, chapter: 0, activeRoom: null, flight: null })
   },
   startWalk: () => {
     resetPlayer()
@@ -234,8 +259,9 @@ export const useStore = create<State>((set, get) => ({
     player.speed = 0
     stopSoccer()
     resetEscort()
+    cancelWalkTo()
     standUp()
-    set({ walk: false, nearby: null, nearBall: false, seated: false, place: null, talking: null, greeting: null, greeted: [], playing: false })
+    set({ walk: false, away: false, nearby: null, nearBall: false, seated: false, place: null, talking: null, greeting: null, greeted: [], playing: false })
   },
   setNearby: (nearby) => set({ nearby }),
   setNearBall: (nearBall) => set({ nearBall }),
@@ -302,6 +328,7 @@ export const useStore = create<State>((set, get) => ({
     if (!tk || !get().walk || get().seated) return
     Object.assign(input, { f: false, b: false, l: false, r: false, run: false })
     player.speed = 0
+    cancelWalkTo()
     // some things are used, not talked to
     if (tk.action) {
       const now = worldClock.t

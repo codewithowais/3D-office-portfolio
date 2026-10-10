@@ -1,15 +1,16 @@
 'use client'
 import { clearLine } from '@/lib/collision'
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { clock } from '@/lib/clock'
 import { dprFor, getDevice } from '@/lib/device'
-import { action, input, player, seat, stepPlayer } from '@/lib/player'
+import { action, input, player, seat, stepJump, stepPlayer } from '@/lib/player'
 import { fill } from '@/lib/dialogue'
 import { escort, updateEscort } from '@/lib/escort'
-import { inPitch, soccer, startSoccer, updateSoccer } from '@/lib/soccer'
+import { inPitch, soccer, startSoccer, stopSoccer, updateSoccer } from '@/lib/soccer'
+import { cancelWalkTo, goto, stepWalkTo, walkTo } from '@/lib/walkto'
 import { TALKABLES, spotOf } from '@/lib/talkables'
 import { zoneAt } from '@/lib/zones'
 import { useStore, type Flight } from '@/lib/store'
@@ -30,6 +31,7 @@ function Director() {
   const last = useRef({ x: 0, z: 0, init: false, zone: null as string | null })
   const mode = useStore((s) => s.mode)
   const fly = useStore((s) => s.flight)
+  const walking = useStore((s) => s.walk)
 
   useEffect(() => {
     flight.current = fly
@@ -96,8 +98,10 @@ function Director() {
     } else {
       // the world holds still while you talk, so whoever you're talking to doesn't wander off
       if (!(st.walk && st.talking)) clock.t += dt
-      const f = flight.current
       const c = controls.current
+      // pressing a movement key while the camera is still swooping in hands control straight over
+      if (st.walk && flight.current && (input.f || input.b || input.l || input.r)) flight.current = null
+      const f = flight.current
       if (f && c) {
         const k = 1 - Math.exp(-dt * 3)
         camera.position.x += (f.pos[0] - camera.position.x) * k
@@ -108,6 +112,8 @@ function Director() {
         c.target.z += (f.target[2] - c.target.z) * k
         if (camera.position.distanceTo(new THREE.Vector3(...f.pos)) < 0.05) flight.current = null
       } else if (st.walk && c) {
+        c.minDistance = 2.5
+        c.maxDistance = 30
         // third-person: move relative to where the camera looks, then drag the camera along with the player
         let fx = c.target.x - camera.position.x
         let fz = c.target.z - camera.position.z
@@ -132,7 +138,10 @@ function Director() {
           if (input.f || input.b || input.l || input.r) st.standUp()
           if (st.nearby) st.setNearby(null)
         } else {
-          stepPlayer(fx, fz, Math.min(delta, 0.12))
+          if (input.f || input.b || input.l || input.r) cancelWalkTo()
+          // a clicked destination walks the character there unless the keys are in use
+          if (!stepWalkTo(dt)) stepPlayer(fx, fz, Math.min(delta, 0.12))
+          else stepJump(dt)
           // one-shot poses (coffee, watering, bell) end after a few seconds, or as soon as you walk off
           if (action.until && (clock.t >= action.until || player.speed > 0.1)) {
             action.until = 0
@@ -176,6 +185,16 @@ function Director() {
           st.setNotice(`Ayesha: ${fill(escort.say, st.playerName)}`)
           escort.say = ''
         }
+        if (st.talking || seat.active) cancelWalkTo()
+        // walking off the pitch ends the match and clears the 'playing' chip
+        if (soccer.active && !inPitch(player.x, player.z, 5)) {
+          stopSoccer()
+          st.setPlaying(false)
+          st.setNearBall(false)
+          st.setNotice('Full time. Thanks for the game!')
+        }
+        const away = inPitch(player.x, player.z, 0.5) || Math.abs(player.x) > 24.5 || player.z > 18.6 || player.z < -18.5
+        if (away !== st.away) st.setAway(away)
         if (!soccer.active && inPitch(player.x, player.z)) {
           startSoccer(clock.t)
           st.setPlaying(true, { ...soccer.score })
@@ -208,6 +227,7 @@ function Director() {
       makeDefault
       enabled={mode === 'explore'}
       enableDamping
+      enablePan={!walking}
       dampingFactor={0.08}
       maxPolarAngle={Math.PI * 0.485}
       minDistance={3}
@@ -216,6 +236,70 @@ function Director() {
         flight.current = null
       }}
     />
+  )
+}
+
+/**
+ * Click-to-walk: a short press-and-release (not a drag) on the ground sends the character there.
+ * Dragging is left to the orbit controls, and pads/buttons sit above the canvas so they never get here.
+ */
+function WalkClick() {
+  const gl = useThree((s) => s.gl)
+  const get = useThree((s) => s.get)
+  const marker = useRef<THREE.Mesh>(null)
+  useEffect(() => {
+    const el = gl.domElement
+    const ray = new THREE.Raycaster()
+    const floor = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
+    const hit = new THREE.Vector3()
+    const pointers = new Set<number>()
+    let down: { x: number; y: number; t: number; ok: boolean } | null = null
+    const onDown = (e: PointerEvent) => {
+      pointers.add(e.pointerId)
+      down = { x: e.clientX, y: e.clientY, t: performance.now(), ok: e.button === 0 && pointers.size === 1 }
+    }
+    const onUp = (e: PointerEvent) => {
+      pointers.delete(e.pointerId)
+      const d = down
+      down = null
+      const st = useStore.getState()
+      if (!d || !d.ok || !st.walk || st.talking || st.seated) return
+      if (performance.now() - d.t > 350 || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return
+      const r = el.getBoundingClientRect()
+      const camera = get().camera
+      ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1)), camera)
+      if (!ray.ray.intersectPlane(floor, hit)) return
+      if (walkTo(hit.x, hit.z) && marker.current) marker.current.position.set(hit.x, 0.06, hit.z)
+    }
+    const onCancel = (e: PointerEvent) => {
+      pointers.delete(e.pointerId)
+      down = null
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (!['ShiftLeft', 'ShiftRight', 'ControlLeft', 'MetaLeft', 'AltLeft'].includes(e.code)) cancelWalkTo()
+    }
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointercancel', onCancel)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointercancel', onCancel)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [gl, get])
+  useFrame(({ clock: c }) => {
+    const m = marker.current
+    if (!m) return
+    m.visible = goto.active
+    if (goto.active) m.scale.setScalar(1 + Math.sin(c.elapsedTime * 6) * 0.12)
+  })
+  return (
+    <mesh ref={marker} rotation-x={-Math.PI / 2} visible={false}>
+      <ringGeometry args={[0.3, 0.45, 32]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.85} depthTest={false} />
+    </mesh>
   )
 }
 
@@ -339,6 +423,7 @@ export default function Scene() {
           ;(window as unknown as Record<string, unknown>).__r3f = state
         }
       }}
+      style={{ touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
       camera={{ fov: 38, near: 0.5, far: 2400, position: [-6, 14, 40] }}
       gl={{ antialias: false, toneMapping: THREE.NoToneMapping, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false }}
     >
@@ -348,6 +433,7 @@ export default function Scene() {
       <Lighting />
       <Lights />
       <Director />
+      <WalkClick />
       <AutoQuality />
       <Suspense fallback={null}>
         <Office />

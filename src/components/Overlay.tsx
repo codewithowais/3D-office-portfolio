@@ -1,6 +1,7 @@
 'use client'
 import { useStore } from '@/lib/store'
 import Dialogue from './Dialogue'
+import BackToOffice from './ui/BackToOffice'
 import Caption from './ui/Caption'
 import Controls from './ui/Controls'
 import Notices from './ui/Notices'
@@ -22,6 +23,7 @@ export default function Overlay() {
         <Caption />
         <Controls />
         <WalkPad />
+        <BackToOffice />
         <Notices />
         <Dialogue />
       </div>
